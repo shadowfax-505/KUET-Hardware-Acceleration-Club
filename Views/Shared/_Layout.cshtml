@@ -1,0 +1,42 @@
+@{
+    var currentUser = Session["CurrentUserEmail"] as string;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - Hardware Acceleration Club of KUET</title>
+    <link rel="stylesheet" href="~/Content/site.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">Hardware Acceleration Club of KUET</div>
+        <nav class="top-menu" id="topMenu">
+            @Html.ActionLink("Home", "Index", "Home")
+            @Html.ActionLink("Projects", "Index", "Projects")
+            @Html.ActionLink("Executives", "Executives", "Team")
+            @Html.ActionLink("Faculty Advisors", "Advisors", "Team")
+            @Html.ActionLink("Register / Login", "Auth", "Account")
+            @if (!string.IsNullOrWhiteSpace(currentUser))
+            {
+                <form class="logout-form" method="post" action="@Url.Action("Logout", "Account")">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="link-button">Logout (@currentUser)</button>
+                </form>
+            }
+        </nav>
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+    </header>
+
+    <main class="container">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        © @DateTime.UtcNow.Year Hardware Acceleration Club of KUET · Built with ASP.NET MVC, HTML, CSS, and JavaScript
+    </footer>
+
+    <script src="~/Scripts/site.js"></script>
+</body>
+</html>

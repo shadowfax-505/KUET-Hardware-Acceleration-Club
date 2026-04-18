@@ -1,0 +1,50 @@
+@model KUETHardwareAccelerationClub.Models.AuthPageViewModel
+@{
+    ViewBag.Title = "Register / Login";
+}
+
+@if (TempData["AuthMessage"] != null)
+{
+    <div class="alert">@TempData["AuthMessage"]</div>
+}
+
+<section class="two-column">
+    <article class="card">
+        <h2>Register as Member</h2>
+        @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <label>Full Name</label>
+            <input type="text" name="FullName" required />
+
+            <label>Student ID</label>
+            <input type="text" name="StudentId" required />
+
+            <label>Email</label>
+            <input type="email" name="Email" required />
+
+            <label>Department</label>
+            <input type="text" name="Department" required />
+
+            <label>Password</label>
+            <input type="password" name="Password" required />
+
+            <button type="submit" class="btn-primary">Register</button>
+        }
+    </article>
+
+    <article class="card">
+        <h2>Member Login</h2>
+        @using (Html.BeginForm("Login", "Account", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <label>Email</label>
+            <input type="email" name="Email" required />
+
+            <label>Password</label>
+            <input type="password" name="Password" required />
+
+            <button type="submit" class="btn-primary">Login</button>
+        }
+    </article>
+</section>

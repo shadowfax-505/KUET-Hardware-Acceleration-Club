@@ -1,0 +1,1 @@
+<%@ Application Codebehind="Global.asax.cs" Inherits="KUETHardwareAccelerationClub.MvcApplication" Language="C#" %>

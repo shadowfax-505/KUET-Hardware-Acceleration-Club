@@ -1,0 +1,24 @@
+@model List<KUETHardwareAccelerationClub.Models.PersonProfile>
+@{
+    ViewBag.Title = "Faculty Advisors";
+}
+
+<section class="card">
+    <h1>Faculty Advisors</h1>
+    <p>Our advisors guide research quality, mentorship, and long-term impact.</p>
+</section>
+
+<section class="profile-grid">
+    @foreach (var person in Model)
+    {
+        <article class="profile-card">
+            <img src="@person.ImageUrl" alt="@person.Name" />
+            <h3>@person.Name</h3>
+            <p>@person.Position</p>
+            <p>@person.Department</p>
+            <a href="mailto:@person.Email">@person.Email</a>
+            <p>@person.Phone</p>
+            <a href="@person.LinkedIn" target="_blank" rel="noreferrer">University Profile</a>
+        </article>
+    }
+</section>

@@ -1,0 +1,34 @@
+@model KUETHardwareAccelerationClub.Models.HomeViewModel
+@{
+    ViewBag.Title = "Home";
+}
+
+<section class="hero">
+    <h1>@Model.ClubName</h1>
+    <p>@Model.IntroText</p>
+    <a class="btn-primary" href="@Url.Action("Auth", "Account")">Become a Member</a>
+</section>
+
+<section class="two-column">
+    <article class="card">
+        <h2>Vision</h2>
+        <p>@Model.Vision</p>
+    </article>
+    <article class="card">
+        <h2>Mission</h2>
+        <p>@Model.Mission</p>
+    </article>
+</section>
+
+<section class="card">
+    <h2>Club Achievements</h2>
+    <ul class="achievement-list">
+        @foreach (var item in Model.Achievements)
+        {
+            <li>
+                <strong>@item.Year · @item.Title</strong>
+                <p>@item.Description</p>
+            </li>
+        }
+    </ul>
+</section>
