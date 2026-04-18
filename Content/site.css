@@ -51,6 +51,15 @@ body {
     padding: 6px 8px;
 }
 
+.top-menu a.active {
+    color: var(--accent-2);
+    border-bottom: 2px solid var(--accent-2);
+}
+
+.hidden {
+    display: none !important;
+}
+
 .top-menu a:hover,
 .link-button:hover {
     color: var(--accent-2);
@@ -83,6 +92,38 @@ body {
 
 .hero h1 { margin-top: 0; font-size: 2rem; }
 .hero p { color: var(--muted); }
+
+.hero-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.stat-card {
+    background: linear-gradient(180deg, #12203a, #0f1a30);
+    border: 1px solid #2a3d65;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-size: 1.7rem;
+    color: var(--accent-2);
+}
+
+.stat-card p {
+    margin: 6px 0 0;
+    color: var(--muted);
+}
 
 .two-column {
     display: grid;
@@ -124,6 +165,20 @@ button[type="submit"] {
     color: var(--text);
 }
 
+.inline-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.inline-form input {
+    margin: 0;
+}
+
+.inline-form button {
+    margin: 0;
+}
+
 input, select, textarea {
     width: 100%;
     margin-top: 6px;
@@ -149,6 +204,88 @@ input, select, textarea {
     border-radius: 10px;
     padding: 10px;
     margin-bottom: 10px;
+}
+
+.project-actions {
+    margin-top: 10px;
+}
+
+.project-actions textarea {
+    margin-top: 0;
+}
+
+.project-login-hint {
+    margin-top: 10px;
+    color: var(--muted);
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.focus-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.focus-card {
+    background: rgba(11, 20, 37, 0.8);
+    border: 1px solid #2b3f67;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.focus-card h3 {
+    margin-top: 0;
+}
+
+.bullet-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.bullet-list li {
+    margin-bottom: 8px;
+}
+
+.timeline {
+    display: grid;
+    gap: 10px;
+}
+
+.timeline article {
+    border-left: 3px solid var(--accent);
+    padding-left: 12px;
+}
+
+.timeline h3 {
+    margin: 0 0 6px;
+    color: var(--accent-2);
+}
+
+.timeline p {
+    margin: 0;
+}
+
+.event-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+.event-card h2 {
+    margin-top: 10px;
+}
+
+.chip {
+    display: inline-block;
+    background: #213861;
+    border: 1px solid #375285;
+    border-radius: 999px;
+    padding: 4px 10px;
+    color: #cae6ff;
+    font-size: 0.8rem;
 }
 
 .report-form {
@@ -191,6 +328,11 @@ input, select, textarea {
 
 @media (max-width: 860px) {
     .two-column { grid-template-columns: 1fr; }
+
+    .inline-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
     .menu-toggle { display: block; }
 

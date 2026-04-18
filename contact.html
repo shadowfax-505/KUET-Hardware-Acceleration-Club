@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact - Hardware Acceleration Club of KUET</title>
+    <link rel="stylesheet" href="Content/site.css" />
+</head>
+<body data-page="contact">
+    <header class="site-header">
+        <div class="brand">Hardware Acceleration Club of KUET</div>
+        <nav class="top-menu" id="topMenu">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="projects.html">Projects</a>
+            <a href="events.html">Events</a>
+            <a href="executives.html">Executives</a>
+            <a href="advisors.html">Faculty Advisors</a>
+            <a href="contact.html">Contact</a>
+            <a href="auth.html" id="authNavLink">Register / Login</a>
+            <button type="button" id="logoutBtn" class="link-button hidden">Logout</button>
+        </nav>
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+    </header>
+
+    <main class="container">
+        <div id="contactMessage" class="alert hidden"></div>
+
+        <section class="two-column">
+            <article class="card">
+                <h1>Contact Us</h1>
+                <p>Have a collaboration idea, mentorship request, or event proposal?</p>
+                <form id="contactForm">
+                    <label for="contactName">Name</label>
+                    <input id="contactName" name="name" type="text" required />
+
+                    <label for="contactEmail">Email</label>
+                    <input id="contactEmail" name="email" type="email" required />
+
+                    <label for="contactTopic">Topic</label>
+                    <select id="contactTopic" name="topic" required>
+                        <option value="">Select topic</option>
+                        <option value="Membership">Membership</option>
+                        <option value="Sponsorship">Sponsorship</option>
+                        <option value="Workshop">Workshop</option>
+                        <option value="Collaboration">Collaboration</option>
+                        <option value="Other">Other</option>
+                    </select>
+
+                    <label for="contactMessageField">Message</label>
+                    <textarea id="contactMessageField" name="message" rows="5" required></textarea>
+
+                    <button type="submit" class="btn-primary">Send Message</button>
+                </form>
+            </article>
+
+            <article class="card">
+                <h2>Club Office</h2>
+                <p><strong>Location:</strong> KUET Campus, Khulna</p>
+                <p><strong>Email:</strong> <a href="mailto:info@hack.kuet.ac.bd">info@hack.kuet.ac.bd</a></p>
+                <p><strong>Phone:</strong> +8801XXXXXXXXX</p>
+                <p><strong>Office Hours:</strong> Sun-Thu, 2:00 PM - 6:00 PM</p>
+                <hr />
+                <h3>Follow Us</h3>
+                <p>
+                    <a href="https://facebook.com" target="_blank" rel="noreferrer">Facebook</a> ·
+                    <a href="https://linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a> ·
+                    <a href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        © <span id="footerYear"></span> Hardware Acceleration Club of KUET · Built with HTML, CSS, and JavaScript
+    </footer>
+
+    <script src="Scripts/site.js"></script>
+</body>
+</html>
