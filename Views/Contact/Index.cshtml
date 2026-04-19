@@ -1,0 +1,46 @@
+@{
+    ViewData["Title"] = "Contact";
+}
+
+@if (TempData["ContactMessage"] is string msg)
+{
+    <div class="alert @(TempData["ContactMessageType"] as string == "error" ? "alert-error" : "alert-success")">@msg</div>
+}
+
+<section class="two-column">
+    <article class="card glass">
+        <h1>Contact Us</h1>
+        <p>Have a collaboration idea, mentorship request, or event proposal?</p>
+        <form asp-controller="Contact" asp-action="Submit" method="post">
+            @Html.AntiForgeryToken()
+            <label>Name</label>
+            <input type="text" name="Name" required />
+
+            <label>Email</label>
+            <input type="email" name="Email" required />
+
+            <label>Topic</label>
+            <select name="Topic" required>
+                <option value="">Select topic</option>
+                <option value="Membership">Membership</option>
+                <option value="Sponsorship">Sponsorship</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Collaboration">Collaboration</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label>Message</label>
+            <textarea name="Message" rows="5" required></textarea>
+
+            <button type="submit" class="btn-primary">Send Message</button>
+        </form>
+    </article>
+
+    <article class="card glass">
+        <h2>Club Office</h2>
+        <p><strong>Location:</strong> KUET Campus, Khulna</p>
+        <p><strong>Email:</strong> <a href="mailto:info@hack.kuet.ac.bd">info@hack.kuet.ac.bd</a></p>
+        <p><strong>Phone:</strong> +8801XXXXXXXXX</p>
+        <p><strong>Office Hours:</strong> Sun-Thu, 2:00 PM - 6:00 PM</p>
+    </article>
+</section>

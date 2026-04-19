@@ -1,0 +1,31 @@
+@model List<EventItem>
+@{
+    ViewData["Title"] = "Events";
+}
+
+@if (TempData["EventMessage"] is string msg)
+{
+    <div class="alert @(TempData["EventMessageType"] as string == "error" ? "alert-error" : "alert-success")">@msg</div>
+}
+
+<section class="card glass">
+    <h1>Upcoming Events</h1>
+    <p>Workshops, competitions, and mentoring sessions for accelerator enthusiasts.</p>
+</section>
+
+<section class="event-grid">
+    @foreach (var ev in Model)
+    {
+        <article class="card glass">
+            <span class="chip">@ev.Type</span>
+            <h2>@ev.Name</h2>
+            <p>@ev.DateAndVenue</p>
+            <p>@ev.Description</p>
+            <form asp-controller="Events" asp-action="Register" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="eventId" value="@ev.Id" />
+                <button type="submit" class="btn-primary">Register</button>
+            </form>
+        </article>
+    }
+</section>

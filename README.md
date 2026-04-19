@@ -1,37 +1,39 @@
-# Hardware Acceleration Club of KUET (Static Website)
+# Hardware Acceleration Club of KUET (ASP.NET MVC)
 
-This project is now a pure static website built with HTML, CSS, and JavaScript.
+This project is now an ASP.NET MVC dynamic website with a modern vibrant UI.
 
-## Pages
+## Dynamic pages
 
-- [index.html](index.html)
-- [about.html](about.html)
-- [projects.html](projects.html)
-- [events.html](events.html)
-- [executives.html](executives.html)
-- [advisors.html](advisors.html)
-- [contact.html](contact.html)
-- [auth.html](auth.html)
+- Home + Newsletter subscription
+- About
+- Projects + comments + reporting moderation flow
+- Events + member registration
+- Executives
+- Advisors
+- Contact + inquiry submission
+- Register/Login + session-based auth state
 
-## Features
+## Stack
 
-- Responsive UI and mobile menu
-- Active navigation highlighting
-- Register/login/logout demo flow
-- Newsletter subscribe form
-- Project comments (member-only)
-- Comment report/flag with 24-hour duplicate suppression
-- Event registration (member-only)
-- Contact form submission handling
+- ASP.NET Core MVC
+- Razor Views
+- In-memory repository service (demo data)
+- Session for lightweight member auth state
+- Custom vibrant UI in [wwwroot/css/site.css](wwwroot/css/site.css)
 
-All interactive data is stored in browser localStorage for demo purposes.
+## Project structure
+
+- [Program.cs](Program.cs)
+- [Controllers](Controllers)
+- [Models](Models)
+- [Services](Services)
+- [Views](Views)
+- [wwwroot](wwwroot)
 
 ## Run
 
-Open [index.html](index.html) directly in a browser.
-
-Optional local server:
-
-`python3 -m http.server 5500`
-
-Then visit `http://localhost:5500`.
+1. Install .NET SDK 8+
+2. Run:
+	- `dotnet restore`
+	- `dotnet run`
+3. Open the local URL shown in terminal

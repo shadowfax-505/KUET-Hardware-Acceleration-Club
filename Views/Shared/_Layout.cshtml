@@ -1,0 +1,47 @@
+@{
+    var currentUser = Context.Session.GetString("CurrentUserEmail");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hardware Acceleration Club of KUET</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <header class="site-header">
+        <a asp-controller="Home" asp-action="Index" class="brand">Hardware Acceleration Club of KUET</a>
+        <nav class="top-menu" id="topMenu">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <a asp-controller="Home" asp-action="About">About</a>
+            <a asp-controller="Projects" asp-action="Index">Projects</a>
+            <a asp-controller="Events" asp-action="Index">Events</a>
+            <a asp-controller="Team" asp-action="Executives">Executives</a>
+            <a asp-controller="Team" asp-action="Advisors">Advisors</a>
+            <a asp-controller="Contact" asp-action="Index">Contact</a>
+            <a asp-controller="Account" asp-action="Auth">@(string.IsNullOrWhiteSpace(currentUser) ? "Register / Login" : $"Logged in: {currentUser}")</a>
+            @if (!string.IsNullOrWhiteSpace(currentUser))
+            {
+                <form asp-controller="Account" asp-action="Logout" method="post" class="inline-form">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-secondary">Logout</button>
+                </form>
+            }
+        </nav>
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+    </header>
+
+    <main class="container">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        © @DateTime.UtcNow.Year Hardware Acceleration Club of KUET · Dynamic ASP.NET MVC Edition
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+</html>

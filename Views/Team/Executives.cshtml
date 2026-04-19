@@ -1,0 +1,25 @@
+@model List<PersonProfile>
+@{
+    ViewData["Title"] = "Executives";
+}
+
+<section class="card glass">
+    <h1>Executive Committee</h1>
+    <p>Meet the student leaders driving innovation in hardware acceleration.</p>
+</section>
+
+<section class="profile-grid">
+    @foreach (var person in Model)
+    {
+        <article class="profile-card glass">
+            <img src="@person.ImageUrl" alt="@person.Name" />
+            <h3>@person.Name</h3>
+            <p>@person.Position</p>
+            <p>@person.Department</p>
+            <p class="muted">@person.Bio</p>
+            <a href="mailto:@person.Email">@person.Email</a>
+            <p>@person.Phone</p>
+            <a href="@person.LinkedIn" target="_blank" rel="noreferrer">Profile</a>
+        </article>
+    }
+</section>

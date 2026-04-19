@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Register / Login";
+}
+
+@if (TempData["AuthMessage"] is string msg)
+{
+    <div class="alert @(TempData["AuthMessageType"] as string == "error" ? "alert-error" : "alert-success")">@msg</div>
+}
+
+<section class="two-column">
+    <article class="card glass">
+        <h2>Register as Member</h2>
+        <form asp-controller="Account" asp-action="Register" method="post">
+            @Html.AntiForgeryToken()
+            <label>Full Name</label>
+            <input type="text" name="FullName" required />
+
+            <label>Student ID</label>
+            <input type="text" name="StudentId" required />
+
+            <label>Email</label>
+            <input type="email" name="Email" required />
+
+            <label>Department</label>
+            <input type="text" name="Department" required />
+
+            <label>Password</label>
+            <input type="password" name="Password" required />
+
+            <button type="submit" class="btn-primary">Register</button>
+        </form>
+    </article>
+
+    <article class="card glass">
+        <h2>Member Login</h2>
+        <p class="muted">Demo: member1@kuet.ac.bd / member123</p>
+        <form asp-controller="Account" asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+            <label>Email</label>
+            <input type="email" name="Email" required />
+
+            <label>Password</label>
+            <input type="password" name="Password" required />
+
+            <button type="submit" class="btn-primary">Login</button>
+        </form>
+    </article>
+</section>

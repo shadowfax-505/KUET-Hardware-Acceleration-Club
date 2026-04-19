@@ -1,0 +1,21 @@
+using KUETHardwareAccelerationClub.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace KUETHardwareAccelerationClub.Controllers;
+
+public class EventsController : Controller
+{
+    [HttpGet]
+    public IActionResult Index() => View(ClubRepository.GetEvents());
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Register(int eventId)
+    {
+        var currentUser = HttpContext.Session.GetString("CurrentUserEmail") ?? string.Empty;
+        var result = ClubRepository.RegisterForEvent(eventId, currentUser);
+        TempData["EventMessage"] = result.message;
+        TempData["EventMessageType"] = result.success ? "success" : "error";
+        return RedirectToAction(nameof(Index));
+    }
+}

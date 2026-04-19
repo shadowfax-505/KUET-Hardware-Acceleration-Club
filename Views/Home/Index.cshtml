@@ -1,0 +1,51 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+@if (TempData["HomeMessage"] is string msg)
+{
+    <div class="alert @(TempData["HomeMessageType"] as string == "error" ? "alert-error" : "alert-success")">@msg</div>
+}
+
+<section class="hero glass">
+    <h1>@Model.ClubName</h1>
+    <p>@Model.IntroText</p>
+    <div class="hero-actions">
+        <a class="btn-primary" asp-controller="Account" asp-action="Auth">Become a Member</a>
+        <a class="btn-secondary" asp-controller="Projects" asp-action="Index">Explore Projects</a>
+    </div>
+</section>
+
+<section class="two-column">
+    <article class="card glass">
+        <h2>Vision</h2>
+        <p>@Model.Vision</p>
+    </article>
+    <article class="card glass">
+        <h2>Mission</h2>
+        <p>@Model.Mission</p>
+    </article>
+</section>
+
+<section class="card glass">
+    <h2>Club Achievements</h2>
+    <ul class="achievement-list">
+        @foreach (var item in Model.Achievements)
+        {
+            <li>
+                <strong>@item.Year · @item.Title</strong>
+                <p>@item.Description</p>
+            </li>
+        }
+    </ul>
+</section>
+
+<section class="card glass">
+    <h2>Stay Updated</h2>
+    <form asp-controller="Home" asp-action="Subscribe" method="post" class="inline-form">
+        @Html.AntiForgeryToken()
+        <input type="email" name="email" placeholder="Enter your KUET email" required />
+        <button type="submit" class="btn-primary">Subscribe</button>
+    </form>
+</section>
