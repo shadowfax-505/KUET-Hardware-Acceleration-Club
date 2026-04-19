@@ -206,6 +206,27 @@ input, select, textarea {
     gap: 14px;
 }
 
+.admin-list {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-item {
+    border: 1px solid #29426f;
+    border-radius: 12px;
+    padding: 14px;
+    background: rgba(10, 18, 35, 0.72);
+}
+
+.admin-item strong {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.admin-item p {
+    margin: 0 0 8px;
+}
+
 .profile-card {
     text-align: center;
     border-radius: 14px;

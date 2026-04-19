@@ -56,6 +56,8 @@ public class AccountController : Controller
             return RedirectToAction(nameof(Auth));
         }
 
+        await _userManager.AddToRoleAsync(user, "Member");
+
         await _signInManager.SignInAsync(user, isPersistent: false);
 
         TempData["AuthMessage"] = "Registration successful.";

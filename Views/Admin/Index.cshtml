@@ -1,0 +1,89 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<section class="hero glass">
+    <h1>Admin Dashboard</h1>
+    <p>Overview of members, content, registrations, and inbound messages.</p>
+</section>
+
+<section class="stats-grid">
+    @foreach (var stat in Model.Stats)
+    {
+        <article class="stat-card">
+            <h3>@stat.Value</h3>
+            <p>@stat.Label</p>
+            <small class="muted">@stat.Subtext</small>
+        </article>
+    }
+</section>
+
+<section class="card glass">
+    <h2>Recent Comments</h2>
+    @if (!Model.RecentComments.Any())
+    {
+        <p class="muted">No comments found.</p>
+    }
+    else
+    {
+        <div class="admin-list">
+            @foreach (var item in Model.RecentComments)
+            {
+                <article class="admin-item">
+                    <strong>@item.ProjectTitle</strong>
+                    <p>@item.Content</p>
+                    <small>
+                        By @item.AuthorEmail · @item.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")
+                        · Status: @item.ModerationStatus · Reports: @item.ReportCount
+                    </small>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+<section class="two-column">
+    <article class="card glass">
+        <h2>Recent Contacts</h2>
+        @if (!Model.RecentContacts.Any())
+        {
+            <p class="muted">No contact submissions yet.</p>
+        }
+        else
+        {
+            <div class="admin-list">
+                @foreach (var item in Model.RecentContacts)
+                {
+                    <article class="admin-item">
+                        <strong>@item.Name</strong>
+                        <p>@item.Topic</p>
+                        <p>@item.Message</p>
+                        <small>@item.Email · @item.SubmittedAtUtc.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</small>
+                    </article>
+                }
+            </div>
+        }
+    </article>
+
+    <article class="card glass">
+        <h2>Recent Event Registrations</h2>
+        @if (!Model.RecentRegistrations.Any())
+        {
+            <p class="muted">No event registrations yet.</p>
+        }
+        else
+        {
+            <div class="admin-list">
+                @foreach (var item in Model.RecentRegistrations)
+                {
+                    <article class="admin-item">
+                        <strong>@item.EventName</strong>
+                        <p>@item.MemberEmail</p>
+                        <small>@item.RegisteredAtUtc.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</small>
+                    </article>
+                }
+            </div>
+        }
+    </article>
+</section>

@@ -1,4 +1,5 @@
 using KUETHardwareAccelerationClub.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KUETHardwareAccelerationClub.Controllers;
@@ -9,6 +10,7 @@ public class EventsController : Controller
     public IActionResult Index() => View(ClubRepository.GetEvents());
 
     [HttpPost]
+    [Authorize(Roles = "Member,Admin")]
     [ValidateAntiForgeryToken]
     public IActionResult Register(int eventId)
     {

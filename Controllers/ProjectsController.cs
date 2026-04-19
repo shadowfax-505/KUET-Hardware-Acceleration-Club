@@ -1,4 +1,5 @@
 using KUETHardwareAccelerationClub.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KUETHardwareAccelerationClub.Controllers;
@@ -16,6 +17,7 @@ public class ProjectsController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Member,Admin")]
     [ValidateAntiForgeryToken]
     public IActionResult AddComment(int projectId, string content)
     {
@@ -36,6 +38,7 @@ public class ProjectsController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Member,Admin")]
     [ValidateAntiForgeryToken]
     public IActionResult ReportComment(int commentId, string reason)
     {

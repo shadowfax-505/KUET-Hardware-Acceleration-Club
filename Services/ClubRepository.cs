@@ -353,6 +353,116 @@ public static class ClubRepository
         return (true, "Message sent successfully.");
     }
 
+    public static AdminDashboardViewModel GetAdminDashboard()
+    {
+        EnsureInitialized();
+        var dashboard = new AdminDashboardViewModel();
+
+        using var connection = OpenConnection();
+        dashboard.Stats = new List<DashboardStat>
+        {
+            new() { Label = "Members", Value = Count(connection, "Members"), Subtext = "Registered users" },
+            new() { Label = "Projects", Value = Count(connection, "Projects"), Subtext = "Showcased work" },
+            new() { Label = "Comments", Value = Count(connection, "Comments"), Subtext = "Member discussions" },
+            new() { Label = "Events", Value = Count(connection, "Events"), Subtext = "Upcoming sessions" },
+            new() { Label = "Registrations", Value = Count(connection, "EventRegistrations"), Subtext = "Event sign-ups" },
+            new() { Label = "Contacts", Value = Count(connection, "ContactSubmissions"), Subtext = "Inbound inquiries" },
+            new() { Label = "Subscribers", Value = Count(connection, "NewsletterSubscribers"), Subtext = "Newsletter audience" }
+        };
+
+        dashboard.RecentComments = GetRecentComments(connection);
+        dashboard.RecentContacts = GetRecentContacts(connection);
+        dashboard.RecentRegistrations = GetRecentRegistrations(connection);
+
+        return dashboard;
+    }
+
+    private static string Count(SqliteConnection connection, string tableName)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT COUNT(1) FROM {tableName};";
+        return Convert.ToInt32(command.ExecuteScalar()).ToString();
+    }
+
+    private static List<AdminCommentItem> GetRecentComments(SqliteConnection connection)
+    {
+        var items = new List<AdminCommentItem>();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT p.Title, c.AuthorEmail, c.Content, c.ReportCount, c.ModerationStatus, c.CreatedAtUtc
+            FROM Comments c
+            INNER JOIN Projects p ON p.Id = c.ProjectId
+            ORDER BY c.CreatedAtUtc DESC
+            LIMIT 8;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            items.Add(new AdminCommentItem
+            {
+                ProjectTitle = reader.GetString(0),
+                AuthorEmail = reader.GetString(1),
+                Content = reader.GetString(2),
+                ReportCount = reader.GetInt32(3),
+                ModerationStatus = reader.GetString(4),
+                CreatedAtUtc = DateTime.Parse(reader.GetString(5))
+            });
+        }
+
+        return items;
+    }
+
+    private static List<AdminContactItem> GetRecentContacts(SqliteConnection connection)
+    {
+        var items = new List<AdminContactItem>();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT Name, Email, Topic, Message, SubmittedAtUtc
+            FROM ContactSubmissions
+            ORDER BY SubmittedAtUtc DESC
+            LIMIT 8;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            items.Add(new AdminContactItem
+            {
+                Name = reader.GetString(0),
+                Email = reader.GetString(1),
+                Topic = reader.GetString(2),
+                Message = reader.GetString(3),
+                SubmittedAtUtc = DateTime.Parse(reader.GetString(4))
+            });
+        }
+
+        return items;
+    }
+
+    private static List<AdminRegistrationItem> GetRecentRegistrations(SqliteConnection connection)
+    {
+        var items = new List<AdminRegistrationItem>();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT e.Name, r.MemberEmail, r.RegisteredAtUtc
+            FROM EventRegistrations r
+            INNER JOIN Events e ON e.Id = r.EventId
+            ORDER BY r.RegisteredAtUtc DESC
+            LIMIT 8;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            items.Add(new AdminRegistrationItem
+            {
+                EventName = reader.GetString(0),
+                MemberEmail = reader.GetString(1),
+                RegisteredAtUtc = DateTime.Parse(reader.GetString(2))
+            });
+        }
+
+        return items;
+    }
+
     private static void EnsureInitialized()
     {
         if (_initialized)

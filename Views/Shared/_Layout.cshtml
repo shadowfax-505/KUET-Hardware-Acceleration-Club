@@ -1,5 +1,6 @@
 @{
     var currentUser = User.Identity?.IsAuthenticated == true ? User.Identity?.Name : null;
+    var isAdmin = User.IsInRole("Admin");
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -22,7 +23,11 @@
             <a asp-controller="Team" asp-action="Executives">Executives</a>
             <a asp-controller="Team" asp-action="Advisors">Advisors</a>
             <a asp-controller="Contact" asp-action="Index">Contact</a>
-            <a asp-controller="Account" asp-action="Auth">@(string.IsNullOrWhiteSpace(currentUser) ? "Register / Login" : $"Logged in: {currentUser}")</a>
+            @if (isAdmin)
+            {
+                <a asp-controller="Admin" asp-action="Index">Admin Dashboard</a>
+            }
+            <a asp-controller="Account" asp-action="Auth">@(string.IsNullOrWhiteSpace(currentUser) ? "Register / Login" : (isAdmin ? $"Admin: {currentUser}" : $"Logged in: {currentUser}"))</a>
             @if (!string.IsNullOrWhiteSpace(currentUser))
             {
                 <form asp-controller="Account" asp-action="Logout" method="post" class="inline-form">

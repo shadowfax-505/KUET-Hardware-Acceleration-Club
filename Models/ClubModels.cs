@@ -86,3 +86,44 @@ public class ContactSubmission
     public string Message { get; set; } = string.Empty;
     public DateTime SubmittedAtUtc { get; set; }
 }
+
+public class AdminDashboardViewModel
+{
+    public List<DashboardStat> Stats { get; set; } = [];
+    public List<AdminCommentItem> RecentComments { get; set; } = [];
+    public List<AdminContactItem> RecentContacts { get; set; } = [];
+    public List<AdminRegistrationItem> RecentRegistrations { get; set; } = [];
+}
+
+public class DashboardStat
+{
+    public string Label { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string Subtext { get; set; } = string.Empty;
+}
+
+public class AdminCommentItem
+{
+    public string ProjectTitle { get; set; } = string.Empty;
+    public string AuthorEmail { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public int ReportCount { get; set; }
+    public string ModerationStatus { get; set; } = string.Empty;
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+public class AdminContactItem
+{
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Topic { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public DateTime SubmittedAtUtc { get; set; }
+}
+
+public class AdminRegistrationItem
+{
+    public string EventName { get; set; } = string.Empty;
+    public string MemberEmail { get; set; } = string.Empty;
+    public DateTime RegisteredAtUtc { get; set; }
+}
