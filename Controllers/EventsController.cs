@@ -12,7 +12,9 @@ public class EventsController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Register(int eventId)
     {
-        var currentUser = HttpContext.Session.GetString("CurrentUserEmail") ?? string.Empty;
+        var currentUser = User.Identity?.IsAuthenticated == true
+            ? (User.Identity?.Name ?? string.Empty)
+            : string.Empty;
         var result = ClubRepository.RegisterForEvent(eventId, currentUser);
         TempData["EventMessage"] = result.message;
         TempData["EventMessageType"] = result.success ? "success" : "error";

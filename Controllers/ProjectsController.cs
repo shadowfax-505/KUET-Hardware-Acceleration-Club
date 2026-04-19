@@ -8,7 +8,9 @@ public class ProjectsController : Controller
     [HttpGet]
     public IActionResult Index()
     {
-        var currentUser = HttpContext.Session.GetString("CurrentUserEmail") ?? string.Empty;
+        var currentUser = User.Identity?.IsAuthenticated == true
+            ? (User.Identity?.Name ?? string.Empty)
+            : string.Empty;
         var model = ClubRepository.GetProjectsPage(currentUser);
         return View(model);
     }
@@ -17,7 +19,9 @@ public class ProjectsController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult AddComment(int projectId, string content)
     {
-        var currentUser = HttpContext.Session.GetString("CurrentUserEmail") ?? string.Empty;
+        var currentUser = User.Identity?.IsAuthenticated == true
+            ? (User.Identity?.Name ?? string.Empty)
+            : string.Empty;
         if (!ClubRepository.IsMember(currentUser))
         {
             TempData["ProjectMessage"] = "Only registered members can comment.";
@@ -35,7 +39,9 @@ public class ProjectsController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult ReportComment(int commentId, string reason)
     {
-        var currentUser = HttpContext.Session.GetString("CurrentUserEmail") ?? string.Empty;
+        var currentUser = User.Identity?.IsAuthenticated == true
+            ? (User.Identity?.Name ?? string.Empty)
+            : string.Empty;
         var result = ClubRepository.ReportComment(commentId, currentUser, reason);
         TempData["ProjectMessage"] = result.message;
         TempData["ProjectMessageType"] = result.success ? "success" : "error";
