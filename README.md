@@ -8,7 +8,7 @@ This project is now an ASP.NET MVC dynamic website with a modern vibrant UI.
 - About
 - Projects + comments + reporting moderation flow
 - Events + member registration
-- Executives
+- Meet the Team
 - Advisors
 - Contact + inquiry submission
 - Register/Login + session-based auth state

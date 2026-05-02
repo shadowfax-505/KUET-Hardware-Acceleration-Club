@@ -14,13 +14,16 @@
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
     <header class="site-header">
-        <a asp-controller="Home" asp-action="Index" class="brand">Hardware Acceleration Club of KUET</a>
+        <a asp-controller="Home" asp-action="Index" class="brand">
+            <img src="~/images/club-logo.svg" alt="" class="brand-logo" />
+            <span>Hardware Acceleration Club of KUET</span>
+        </a>
         <nav class="top-menu" id="topMenu">
             <a asp-controller="Home" asp-action="Index">Home</a>
             <a asp-controller="Home" asp-action="About">About</a>
             <a asp-controller="Projects" asp-action="Index">Projects</a>
             <a asp-controller="Events" asp-action="Index">Events</a>
-            <a asp-controller="Team" asp-action="Executives">Executives</a>
+            <a asp-controller="Team" asp-action="MeetTheTeam">Meet the Team</a>
             <a asp-controller="Team" asp-action="Advisors">Advisors</a>
             <a asp-controller="Contact" asp-action="Index">Contact</a>
             @if (isAdmin)
@@ -42,6 +45,8 @@
     <main class="container">
         @RenderBody()
     </main>
+
+    <button id="backToTop" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
 
     <footer class="site-footer">
         © @DateTime.UtcNow.Year Hardware Acceleration Club of KUET · Dynamic ASP.NET MVC Edition

@@ -3,6 +3,11 @@
     ViewData["Title"] = "Admin Dashboard";
 }
 
+@if (TempData["AdminMessage"] is string msg)
+{
+    <div class="alert @(TempData["AdminMessageType"] as string == "error" ? "alert-error" : "alert-success")">@msg</div>
+}
+
 <section class="hero glass">
     <h1>Admin Dashboard</h1>
     <p>Overview of members, content, registrations, and inbound messages.</p>
@@ -20,7 +25,9 @@
 </section>
 
 <section class="card glass">
-    <h2>Recent Comments</h2>
+    <div class="admin-header-row">
+        <h2>Recent Comments</h2>
+    </div>
     @if (!Model.RecentComments.Any())
     {
         <p class="muted">No comments found.</p>
@@ -37,6 +44,30 @@
                         By @item.AuthorEmail · @item.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")
                         · Status: @item.ModerationStatus · Reports: @item.ReportCount
                     </small>
+                    <div class="admin-actions-row">
+                        @if (item.ModerationStatus == "Hidden")
+                        {
+                            <form asp-controller="Admin" asp-action="RestoreComment" method="post" class="inline-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="commentId" value="@item.Id" />
+                                <button type="submit" class="btn-secondary">Restore</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-controller="Admin" asp-action="HideComment" method="post" class="inline-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="commentId" value="@item.Id" />
+                                <button type="submit" class="btn-danger">Hide</button>
+                            </form>
+                        }
+
+                        <form asp-controller="Admin" asp-action="ClearReports" method="post" class="inline-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="commentId" value="@item.Id" />
+                            <button type="submit" class="btn-secondary">Clear Reports</button>
+                        </form>
+                    </div>
                 </article>
             }
         </div>
@@ -45,7 +76,10 @@
 
 <section class="two-column">
     <article class="card glass">
-        <h2>Recent Contacts</h2>
+        <div class="admin-header-row">
+            <h2>Recent Contacts</h2>
+            <a asp-controller="Admin" asp-action="ExportContactsCsv" class="btn-secondary">Export CSV</a>
+        </div>
         @if (!Model.RecentContacts.Any())
         {
             <p class="muted">No contact submissions yet.</p>

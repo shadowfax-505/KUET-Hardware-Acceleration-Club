@@ -50,7 +50,7 @@ public static class ClubRepository
             SELECT p.Id, p.Title, p.Summary, p.Lead, p.Stack,
                    c.Id, c.AuthorEmail, c.Content, c.CreatedAtUtc, c.ReportCount, c.ModerationStatus
             FROM Projects p
-            LEFT JOIN Comments c ON c.ProjectId = p.Id
+            LEFT JOIN Comments c ON c.ProjectId = p.Id AND c.ModerationStatus <> 'Hidden'
             ORDER BY p.Id, c.CreatedAtUtc DESC;";
 
         using var reader = command.ExecuteReader();
@@ -377,6 +377,80 @@ public static class ClubRepository
         return dashboard;
     }
 
+    public static bool SetCommentModerationStatus(int commentId, string moderationStatus)
+    {
+        EnsureInitialized();
+        var normalizedStatus = (moderationStatus ?? string.Empty).Trim();
+        if (normalizedStatus is not ("Visible" or "Hidden" or "UnderReview"))
+        {
+            return false;
+        }
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE Comments SET ModerationStatus = $status WHERE Id = $id;";
+        command.Parameters.AddWithValue("$status", normalizedStatus);
+        command.Parameters.AddWithValue("$id", commentId);
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public static bool ResetCommentReports(int commentId)
+    {
+        EnsureInitialized();
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        using (var deleteReports = connection.CreateCommand())
+        {
+            deleteReports.Transaction = transaction;
+            deleteReports.CommandText = "DELETE FROM CommentReports WHERE CommentId = $id;";
+            deleteReports.Parameters.AddWithValue("$id", commentId);
+            deleteReports.ExecuteNonQuery();
+        }
+
+        using var updateComment = connection.CreateCommand();
+        updateComment.Transaction = transaction;
+        updateComment.CommandText = @"
+            UPDATE Comments
+            SET ReportCount = 0,
+                ModerationStatus = CASE WHEN ModerationStatus = 'UnderReview' THEN 'Visible' ELSE ModerationStatus END
+            WHERE Id = $id;";
+        updateComment.Parameters.AddWithValue("$id", commentId);
+        var affected = updateComment.ExecuteNonQuery();
+
+        transaction.Commit();
+        return affected > 0;
+    }
+
+    public static List<AdminContactItem> GetAllContactsForExport()
+    {
+        EnsureInitialized();
+        var items = new List<AdminContactItem>();
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT Id, Name, Email, Topic, Message, SubmittedAtUtc
+            FROM ContactSubmissions
+            ORDER BY SubmittedAtUtc DESC;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            items.Add(new AdminContactItem
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Email = reader.GetString(2),
+                Topic = reader.GetString(3),
+                Message = reader.GetString(4),
+                SubmittedAtUtc = DateTime.Parse(reader.GetString(5))
+            });
+        }
+
+        return items;
+    }
+
     private static string Count(SqliteConnection connection, string tableName)
     {
         using var command = connection.CreateCommand();
@@ -389,7 +463,7 @@ public static class ClubRepository
         var items = new List<AdminCommentItem>();
         using var command = connection.CreateCommand();
         command.CommandText = @"
-            SELECT p.Title, c.AuthorEmail, c.Content, c.ReportCount, c.ModerationStatus, c.CreatedAtUtc
+            SELECT c.Id, p.Title, c.AuthorEmail, c.Content, c.ReportCount, c.ModerationStatus, c.CreatedAtUtc
             FROM Comments c
             INNER JOIN Projects p ON p.Id = c.ProjectId
             ORDER BY c.CreatedAtUtc DESC
@@ -400,12 +474,13 @@ public static class ClubRepository
         {
             items.Add(new AdminCommentItem
             {
-                ProjectTitle = reader.GetString(0),
-                AuthorEmail = reader.GetString(1),
-                Content = reader.GetString(2),
-                ReportCount = reader.GetInt32(3),
-                ModerationStatus = reader.GetString(4),
-                CreatedAtUtc = DateTime.Parse(reader.GetString(5))
+                Id = reader.GetInt32(0),
+                ProjectTitle = reader.GetString(1),
+                AuthorEmail = reader.GetString(2),
+                Content = reader.GetString(3),
+                ReportCount = reader.GetInt32(4),
+                ModerationStatus = reader.GetString(5),
+                CreatedAtUtc = DateTime.Parse(reader.GetString(6))
             });
         }
 
@@ -417,7 +492,7 @@ public static class ClubRepository
         var items = new List<AdminContactItem>();
         using var command = connection.CreateCommand();
         command.CommandText = @"
-            SELECT Name, Email, Topic, Message, SubmittedAtUtc
+            SELECT Id, Name, Email, Topic, Message, SubmittedAtUtc
             FROM ContactSubmissions
             ORDER BY SubmittedAtUtc DESC
             LIMIT 8;";
@@ -427,11 +502,12 @@ public static class ClubRepository
         {
             items.Add(new AdminContactItem
             {
-                Name = reader.GetString(0),
-                Email = reader.GetString(1),
-                Topic = reader.GetString(2),
-                Message = reader.GetString(3),
-                SubmittedAtUtc = DateTime.Parse(reader.GetString(4))
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Email = reader.GetString(2),
+                Topic = reader.GetString(3),
+                Message = reader.GetString(4),
+                SubmittedAtUtc = DateTime.Parse(reader.GetString(5))
             });
         }
 

@@ -104,6 +104,7 @@ public class DashboardStat
 
 public class AdminCommentItem
 {
+    public int Id { get; set; }
     public string ProjectTitle { get; set; } = string.Empty;
     public string AuthorEmail { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
@@ -114,6 +115,7 @@ public class AdminCommentItem
 
 public class AdminContactItem
 {
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Topic { get; set; } = string.Empty;

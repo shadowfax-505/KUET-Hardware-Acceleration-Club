@@ -23,4 +23,21 @@
             }
         });
     }
+
+    var backToTop = document.getElementById("backToTop");
+    if (backToTop) {
+        var toggleBackToTop = function () {
+            var isScrollable = document.documentElement.scrollHeight > window.innerHeight + 120;
+            var shouldShow = isScrollable && window.scrollY > 260;
+            backToTop.classList.toggle("visible", shouldShow);
+        };
+
+        backToTop.addEventListener("click", function () {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        window.addEventListener("scroll", toggleBackToTop, { passive: true });
+        window.addEventListener("resize", toggleBackToTop);
+        toggleBackToTop();
+    }
 })();
