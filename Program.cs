@@ -72,6 +72,38 @@ using (var scope = app.Services.CreateScope())
     {
         await userManager.AddToRoleAsync(adminUser, "Admin");
     }
+
+    var demoMembers = new[]
+    {
+        (Email: "member1@kuet.ac.bd", Password: "member123"),
+        (Email: "member2@kuet.ac.bd", Password: "member123"),
+        (Email: "member3@kuet.ac.bd", Password: "member123")
+    };
+
+    foreach (var demoMember in demoMembers)
+    {
+        var memberUser = await userManager.FindByEmailAsync(demoMember.Email);
+        if (memberUser is null)
+        {
+            memberUser = new IdentityUser
+            {
+                UserName = demoMember.Email,
+                Email = demoMember.Email,
+                EmailConfirmed = true
+            };
+
+            var memberCreate = await userManager.CreateAsync(memberUser, demoMember.Password);
+            if (!memberCreate.Succeeded)
+            {
+                continue;
+            }
+        }
+
+        if (!await userManager.IsInRoleAsync(memberUser, "Member"))
+        {
+            await userManager.AddToRoleAsync(memberUser, "Member");
+        }
+    }
 }
 
 if (!app.Environment.IsDevelopment())
