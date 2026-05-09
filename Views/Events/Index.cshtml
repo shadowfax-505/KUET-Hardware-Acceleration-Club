@@ -1,4 +1,4 @@
-@model List<EventItem>
+@model EventsPageViewModel
 @{
     ViewData["Title"] = "Events";
 }
@@ -14,8 +14,9 @@
 </section>
 
 <section class="event-grid">
-    @foreach (var ev in Model)
+    @foreach (var ev in Model.Events)
     {
+        var isRegistered = Model.RegisteredEventIds.Contains(ev.Id);
         <article class="card glass">
             <span class="chip">@ev.Type</span>
             <h2>@ev.Name</h2>
@@ -24,7 +25,14 @@
             <form asp-controller="Events" asp-action="Register" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="eventId" value="@ev.Id" />
-                <button type="submit" class="btn-primary">Register</button>
+                @if (isRegistered)
+                {
+                    <button type="button" class="btn-secondary" disabled>Registered</button>
+                }
+                else
+                {
+                    <button type="submit" class="btn-primary">Register</button>
+                }
             </form>
         </article>
     }

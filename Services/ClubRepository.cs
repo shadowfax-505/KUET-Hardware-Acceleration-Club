@@ -87,7 +87,7 @@ public static class ClubRepository
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
         command.CommandText = @"
-            SELECT FullName, Email, StudentId, Department, IFNULL(ImageUrl, '')
+            SELECT FullName, Email, StudentId, Department, IFNULL(ImageUrl, ''), IFNULL(GitHubProfile, '')
             FROM Members
             ORDER BY FullName COLLATE NOCASE;";
 
@@ -100,7 +100,8 @@ public static class ClubRepository
                 Email = reader.GetString(1),
                 StudentId = reader.GetString(2),
                 Department = reader.GetString(3),
-                ImageUrl = reader.IsDBNull(4) ? string.Empty : reader.GetString(4)
+                ImageUrl = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                GitHubProfile = reader.IsDBNull(5) ? string.Empty : reader.GetString(5)
             });
         }
 
@@ -169,9 +170,15 @@ public static class ClubRepository
     {
         EnsureInitialized();
         var email = Normalize(input.Email);
+        var gitHubProfile = NormalizeGitHubProfile(input.GitHubProfile);
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(input.Password))
         {
             return (false, "Invalid registration request.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(input.GitHubProfile) && string.IsNullOrWhiteSpace(gitHubProfile))
+        {
+            return (false, "Please enter a valid GitHub profile URL.");
         }
 
         using var connection = OpenConnection();
@@ -185,12 +192,13 @@ public static class ClubRepository
         using (var memberCommand = connection.CreateCommand())
         {
             memberCommand.Transaction = transaction;
-            memberCommand.CommandText = "INSERT INTO Members (Email, FullName, StudentId, Department, ImageUrl) VALUES ($email, $fullName, $studentId, $department, $imageUrl);";
+            memberCommand.CommandText = "INSERT INTO Members (Email, FullName, StudentId, Department, ImageUrl, GitHubProfile) VALUES ($email, $fullName, $studentId, $department, $imageUrl, $gitHubProfile);";
             memberCommand.Parameters.AddWithValue("$email", email);
             memberCommand.Parameters.AddWithValue("$fullName", input.FullName.Trim());
             memberCommand.Parameters.AddWithValue("$studentId", input.StudentId.Trim());
             memberCommand.Parameters.AddWithValue("$department", input.Department.Trim());
             memberCommand.Parameters.AddWithValue("$imageUrl", imageUrl ?? string.Empty);
+            memberCommand.Parameters.AddWithValue("$gitHubProfile", gitHubProfile);
             memberCommand.ExecuteNonQuery();
         }
 
@@ -341,6 +349,33 @@ public static class ClubRepository
         return events;
     }
 
+    public static List<int> GetRegisteredEventIds(string email)
+    {
+        EnsureInitialized();
+        var normalizedEmail = Normalize(email);
+        if (string.IsNullOrWhiteSpace(normalizedEmail))
+        {
+            return [];
+        }
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT EventId
+            FROM EventRegistrations
+            WHERE MemberEmail = $email;";
+        command.Parameters.AddWithValue("$email", normalizedEmail);
+
+        var eventIds = new List<int>();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            eventIds.Add(reader.GetInt32(0));
+        }
+
+        return eventIds;
+    }
+
     public static (bool success, string message) RegisterForEvent(int eventId, string email)
     {
         EnsureInitialized();
@@ -361,6 +396,14 @@ public static class ClubRepository
             return (false, "You are already registered for this event.");
         }
 
+        using var eventExistsCommand = connection.CreateCommand();
+        eventExistsCommand.CommandText = "SELECT COUNT(1) FROM Events WHERE Id = $eventId;";
+        eventExistsCommand.Parameters.AddWithValue("$eventId", eventId);
+        if (Convert.ToInt32(eventExistsCommand.ExecuteScalar()) == 0)
+        {
+            return (false, "Event not found.");
+        }
+
         using var insertCommand = connection.CreateCommand();
         insertCommand.CommandText = @"
             INSERT INTO EventRegistrations (EventId, MemberEmail, RegisteredAtUtc)
@@ -371,6 +414,96 @@ public static class ClubRepository
         insertCommand.ExecuteNonQuery();
 
         return (true, "Event registration successful.");
+    }
+
+    public static (bool success, string message) AddEvent(AdminEventInput input)
+    {
+        EnsureInitialized();
+        if (string.IsNullOrWhiteSpace(input.Type) || string.IsNullOrWhiteSpace(input.Name) || string.IsNullOrWhiteSpace(input.DateAndVenue) || string.IsNullOrWhiteSpace(input.Description))
+        {
+            return (false, "All event fields are required.");
+        }
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            INSERT INTO Events (Type, Name, DateAndVenue, Description)
+            VALUES ($type, $name, $dateAndVenue, $description);";
+        command.Parameters.AddWithValue("$type", input.Type.Trim());
+        command.Parameters.AddWithValue("$name", input.Name.Trim());
+        command.Parameters.AddWithValue("$dateAndVenue", input.DateAndVenue.Trim());
+        command.Parameters.AddWithValue("$description", input.Description.Trim());
+        var affected = command.ExecuteNonQuery();
+
+        return affected > 0
+            ? (true, "Event added successfully.")
+            : (false, "Failed to add event.");
+    }
+
+    public static (bool success, string message) UpdateEvent(AdminEventInput input)
+    {
+        EnsureInitialized();
+        if (input.Id <= 0)
+        {
+            return (false, "Invalid event.");
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Type) || string.IsNullOrWhiteSpace(input.Name) || string.IsNullOrWhiteSpace(input.DateAndVenue) || string.IsNullOrWhiteSpace(input.Description))
+        {
+            return (false, "All event fields are required.");
+        }
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            UPDATE Events
+            SET Type = $type,
+                Name = $name,
+                DateAndVenue = $dateAndVenue,
+                Description = $description
+            WHERE Id = $id;";
+        command.Parameters.AddWithValue("$id", input.Id);
+        command.Parameters.AddWithValue("$type", input.Type.Trim());
+        command.Parameters.AddWithValue("$name", input.Name.Trim());
+        command.Parameters.AddWithValue("$dateAndVenue", input.DateAndVenue.Trim());
+        command.Parameters.AddWithValue("$description", input.Description.Trim());
+        var affected = command.ExecuteNonQuery();
+
+        return affected > 0
+            ? (true, "Event updated successfully.")
+            : (false, "Event not found.");
+    }
+
+    public static (bool success, string message) DeleteEvent(int eventId)
+    {
+        EnsureInitialized();
+        if (eventId <= 0)
+        {
+            return (false, "Invalid event.");
+        }
+
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        using (var registrationsCommand = connection.CreateCommand())
+        {
+            registrationsCommand.Transaction = transaction;
+            registrationsCommand.CommandText = "DELETE FROM EventRegistrations WHERE EventId = $eventId;";
+            registrationsCommand.Parameters.AddWithValue("$eventId", eventId);
+            registrationsCommand.ExecuteNonQuery();
+        }
+
+        using var eventCommand = connection.CreateCommand();
+        eventCommand.Transaction = transaction;
+        eventCommand.CommandText = "DELETE FROM Events WHERE Id = $eventId;";
+        eventCommand.Parameters.AddWithValue("$eventId", eventId);
+        var affected = eventCommand.ExecuteNonQuery();
+
+        transaction.Commit();
+
+        return affected > 0
+            ? (true, "Event deleted successfully.")
+            : (false, "Event not found.");
     }
 
     public static (bool success, string message) SubscribeNewsletter(string email)
@@ -440,6 +573,8 @@ public static class ClubRepository
         };
 
         dashboard.ProfileTargets = GetProfileTargets();
+        dashboard.Events = GetEvents();
+        dashboard.EventRegistrationsByEvent = GetEventRegistrationsByEvent(connection);
         dashboard.RecentAnnouncements = GetRecentAnnouncements(connection);
         dashboard.RecentComments = GetRecentComments(connection);
         dashboard.RecentContacts = GetRecentContacts(connection);
@@ -729,6 +864,53 @@ public static class ClubRepository
         return items;
     }
 
+    private static List<AdminEventRegistrationGroup> GetEventRegistrationsByEvent(SqliteConnection connection)
+    {
+        var groups = GetEvents().Select(ev => new AdminEventRegistrationGroup
+        {
+            EventId = ev.Id,
+            EventType = ev.Type,
+            EventName = ev.Name,
+            DateAndVenue = ev.DateAndVenue,
+            Registrations = []
+        }).ToDictionary(item => item.EventId);
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT r.EventId,
+                   m.FullName,
+                   m.Email,
+                   m.StudentId,
+                   m.Department,
+                   IFNULL(m.GitHubProfile, ''),
+                   r.RegisteredAtUtc
+            FROM EventRegistrations r
+            INNER JOIN Members m ON m.Email = r.MemberEmail
+            ORDER BY r.RegisteredAtUtc DESC;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var eventId = reader.GetInt32(0);
+            if (!groups.TryGetValue(eventId, out var group))
+            {
+                continue;
+            }
+
+            group.Registrations.Add(new AdminEventRegistrationItem
+            {
+                FullName = reader.GetString(1),
+                Email = reader.GetString(2),
+                StudentId = reader.GetString(3),
+                Department = reader.GetString(4),
+                GitHubProfile = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                RegisteredAtUtc = DateTime.Parse(reader.GetString(6))
+            });
+        }
+
+        return groups.Values.OrderBy(item => item.EventId).ToList();
+    }
+
     private static void EnsureInitialized()
     {
         if (_initialized)
@@ -754,7 +936,8 @@ public static class ClubRepository
                     FullName TEXT NOT NULL,
                     StudentId TEXT NOT NULL,
                     Department TEXT NOT NULL,
-                    ImageUrl TEXT
+                    ImageUrl TEXT,
+                    GitHubProfile TEXT
                 );
 
                 CREATE TABLE IF NOT EXISTS Credentials (
@@ -792,7 +975,7 @@ public static class ClubRepository
                 );
 
                 CREATE TABLE IF NOT EXISTS Events (
-                    Id INTEGER PRIMARY KEY,
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
                     Type TEXT NOT NULL,
                     Name TEXT NOT NULL,
                     DateAndVenue TEXT NOT NULL,
@@ -853,6 +1036,7 @@ public static class ClubRepository
             command.ExecuteNonQuery();
 
             EnsureColumnExists(connection, "Members", "ImageUrl", "TEXT");
+            EnsureColumnExists(connection, "Members", "GitHubProfile", "TEXT");
 
             SeedIfEmpty(connection);
             _initialized = true;
@@ -1027,6 +1211,27 @@ public static class ClubRepository
             : (false, "Could not save profile details.");
     }
     private static string BuildProfileKey(string roleKey, string email) => $"{roleKey.Trim().ToLowerInvariant()}:{Normalize(email)}";
+
+    private static string NormalizeGitHubProfile(string? profile)
+    {
+        var normalized = (profile ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return string.Empty;
+        }
+
+        if (!Uri.TryCreate(normalized, UriKind.Absolute, out var uri))
+        {
+            return string.Empty;
+        }
+
+        if (!uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) && !uri.Host.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Empty;
+        }
+
+        return uri.ToString();
+    }
 
     private static SqliteConnection OpenConnection()
     {

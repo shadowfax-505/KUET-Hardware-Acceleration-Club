@@ -150,6 +150,36 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult AddEvent(AdminEventInput input)
+    {
+        var result = ClubRepository.AddEvent(input);
+        TempData["AdminMessage"] = result.message;
+        TempData["AdminMessageType"] = result.success ? "success" : "error";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult UpdateEvent(AdminEventInput input)
+    {
+        var result = ClubRepository.UpdateEvent(input);
+        TempData["AdminMessage"] = result.message;
+        TempData["AdminMessageType"] = result.success ? "success" : "error";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult DeleteEvent(int id)
+    {
+        var result = ClubRepository.DeleteEvent(id);
+        TempData["AdminMessage"] = result.message;
+        TempData["AdminMessageType"] = result.success ? "success" : "error";
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpGet]
     public IActionResult ExportContactsCsv()
     {
@@ -190,7 +220,8 @@ public class AdminController : Controller
                 Name = member.FullName,
                 Email = member.Email,
                 Department = member.Department,
-                StudentId = member.StudentId
+                StudentId = member.StudentId,
+                GitHubProfile = member.GitHubProfile
             })
             .ToList();
 
@@ -201,7 +232,8 @@ public class AdminController : Controller
             Name = admin.UserName ?? admin.Email ?? admin.Id,
             Email = admin.Email ?? admin.UserName ?? string.Empty,
             Department = "Admin",
-            StudentId = "N/A"
+            StudentId = "N/A",
+            GitHubProfile = string.Empty
         }));
 
         return people;

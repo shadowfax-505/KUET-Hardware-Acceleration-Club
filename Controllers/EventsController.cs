@@ -1,3 +1,4 @@
+using KUETHardwareAccelerationClub.Models;
 using KUETHardwareAccelerationClub.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,20 @@ namespace KUETHardwareAccelerationClub.Controllers;
 public class EventsController : Controller
 {
     [HttpGet]
-    public IActionResult Index() => View(ClubRepository.GetEvents());
+    public IActionResult Index()
+    {
+        var currentUser = User.Identity?.IsAuthenticated == true
+            ? (User.Identity?.Name ?? string.Empty)
+            : string.Empty;
+
+        var model = new EventsPageViewModel
+        {
+            Events = ClubRepository.GetEvents(),
+            RegisteredEventIds = ClubRepository.GetRegisteredEventIds(currentUser)
+        };
+
+        return View(model);
+    }
 
     [HttpPost]
     [Authorize(Roles = "Member,Admin")]

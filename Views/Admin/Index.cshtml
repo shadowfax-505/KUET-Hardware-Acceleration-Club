@@ -110,6 +110,7 @@
                     <th>Email</th>
                     <th>Department</th>
                     <th>Student ID</th>
+                    <th>GitHub</th>
                 </tr>
             </thead>
             <tbody id="peopleTableBody">
@@ -121,11 +122,157 @@
                         <td>@person.Email</td>
                         <td>@person.Department</td>
                         <td>@person.StudentId</td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(person.GitHubProfile))
+                            {
+                                <a href="@person.GitHubProfile" target="_blank" rel="noopener noreferrer">Profile</a>
+                            }
+                            else
+                            {
+                                <span class="muted">N/A</span>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+</section>
+
+<section class="two-column">
+    <article class="card glass">
+        <div class="admin-header-row">
+            <div>
+                <h2>Manage Events</h2>
+                <p class="muted">Create new events, update existing ones, and remove events when needed.</p>
+            </div>
+        </div>
+
+        <form asp-controller="Admin" asp-action="AddEvent" method="post" class="broadcast-form">
+            @Html.AntiForgeryToken()
+            <label>Type
+                <input type="text" name="Type" placeholder="Workshop / Hackathon / Talk" required />
+            </label>
+            <label>Name
+                <input type="text" name="Name" placeholder="Event title" required />
+            </label>
+            <label>Date and Venue
+                <input type="text" name="DateAndVenue" placeholder="May 28, 2026 · KUET" required />
+            </label>
+            <label>Description
+                <textarea name="Description" rows="3" placeholder="Event details" required></textarea>
+            </label>
+            <button type="submit" class="btn-primary">Add Event</button>
+        </form>
+
+        @if (!Model.Events.Any())
+        {
+            <p class="muted">No events available.</p>
+        }
+        else
+        {
+            <div class="admin-list">
+                @foreach (var ev in Model.Events)
+                {
+                    <article class="admin-item">
+                        <form asp-controller="Admin" asp-action="UpdateEvent" method="post" class="broadcast-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="Id" value="@ev.Id" />
+                            <label>Type
+                                <input type="text" name="Type" value="@ev.Type" required />
+                            </label>
+                            <label>Name
+                                <input type="text" name="Name" value="@ev.Name" required />
+                            </label>
+                            <label>Date and Venue
+                                <input type="text" name="DateAndVenue" value="@ev.DateAndVenue" required />
+                            </label>
+                            <label>Description
+                                <textarea name="Description" rows="3" required>@ev.Description</textarea>
+                            </label>
+                            <div class="admin-actions-row">
+                                <button type="submit" class="btn-secondary">Save Changes</button>
+                            </div>
+                        </form>
+                        <form asp-controller="Admin" asp-action="DeleteEvent" method="post" class="inline-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@ev.Id" />
+                            <button type="submit" class="btn-danger">Delete Event</button>
+                        </form>
+                    </article>
+                }
+            </div>
+        }
+    </article>
+
+    <article class="card glass">
+        <div class="admin-header-row">
+            <div>
+                <h2>Event Registrations by Event</h2>
+                <p class="muted">See exactly which members registered for each event.</p>
+            </div>
+        </div>
+
+        @if (!Model.EventRegistrationsByEvent.Any())
+        {
+            <p class="muted">No events found.</p>
+        }
+        else
+        {
+            <div class="admin-list">
+                @foreach (var group in Model.EventRegistrationsByEvent)
+                {
+                    <article class="admin-item">
+                        <strong>@group.EventName</strong>
+                        <p>@group.EventType · @group.DateAndVenue</p>
+                        @if (!group.Registrations.Any())
+                        {
+                            <small class="muted">No registrations yet.</small>
+                        }
+                        else
+                        {
+                            <div class="table-card">
+                                <table class="directory-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Department</th>
+                                            <th>Student ID</th>
+                                            <th>GitHub</th>
+                                            <th>Registered At</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var reg in group.Registrations)
+                                        {
+                                            <tr>
+                                                <td>@reg.FullName</td>
+                                                <td>@reg.Email</td>
+                                                <td>@reg.Department</td>
+                                                <td>@reg.StudentId</td>
+                                                <td>
+                                                    @if (!string.IsNullOrWhiteSpace(reg.GitHubProfile))
+                                                    {
+                                                        <a href="@reg.GitHubProfile" target="_blank" rel="noopener noreferrer">Profile</a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="muted">N/A</span>
+                                                    }
+                                                </td>
+                                                <td>@reg.RegisteredAtUtc.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </article>
+                }
+            </div>
+        }
+    </article>
 </section>
 
 <section class="two-column">

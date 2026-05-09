@@ -42,6 +42,7 @@ public class RegisterInput
     public string StudentId { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
+    public string GitHubProfile { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }
 
@@ -93,6 +94,7 @@ public class MemberDirectoryItem
     public string StudentId { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
     public string ImageUrl { get; set; } = string.Empty;
+    public string GitHubProfile { get; set; } = string.Empty;
 }
 
 public class DashboardPersonItem
@@ -102,6 +104,13 @@ public class DashboardPersonItem
     public string Email { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
     public string StudentId { get; set; } = string.Empty;
+    public string GitHubProfile { get; set; } = string.Empty;
+}
+
+public class EventsPageViewModel
+{
+    public List<EventItem> Events { get; set; } = [];
+    public List<int> RegisteredEventIds { get; set; } = [];
 }
 
 public class AdminProfileTarget
@@ -143,6 +152,8 @@ public class AdminDashboardViewModel
 {
     public List<DashboardStat> Stats { get; set; } = [];
     public List<DashboardPersonItem> People { get; set; } = [];
+    public List<EventItem> Events { get; set; } = [];
+    public List<AdminEventRegistrationGroup> EventRegistrationsByEvent { get; set; } = [];
     public List<AdminProfileTarget> ProfileTargets { get; set; } = [];
     public List<AdminAnnouncementItem> RecentAnnouncements { get; set; } = [];
     public List<AdminCommentItem> RecentComments { get; set; } = [];
@@ -184,4 +195,32 @@ public class AdminRegistrationItem
     public string EventName { get; set; } = string.Empty;
     public string MemberEmail { get; set; } = string.Empty;
     public DateTime RegisteredAtUtc { get; set; }
+}
+
+public class AdminEventInput
+{
+    public int Id { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string DateAndVenue { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+}
+
+public class AdminEventRegistrationItem
+{
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string StudentId { get; set; } = string.Empty;
+    public string Department { get; set; } = string.Empty;
+    public string GitHubProfile { get; set; } = string.Empty;
+    public DateTime RegisteredAtUtc { get; set; }
+}
+
+public class AdminEventRegistrationGroup
+{
+    public int EventId { get; set; }
+    public string EventType { get; set; } = string.Empty;
+    public string EventName { get; set; } = string.Empty;
+    public string DateAndVenue { get; set; } = string.Empty;
+    public List<AdminEventRegistrationItem> Registrations { get; set; } = [];
 }
