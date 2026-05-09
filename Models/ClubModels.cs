@@ -78,6 +78,49 @@ public class EventItem
     public string Description { get; set; } = string.Empty;
 }
 
+public class MemberDirectoryItem
+{
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string StudentId { get; set; } = string.Empty;
+    public string Department { get; set; } = string.Empty;
+}
+
+public class DashboardPersonItem
+{
+    public string Role { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Department { get; set; } = string.Empty;
+    public string StudentId { get; set; } = string.Empty;
+}
+
+public class AdminProfileTarget
+{
+    public string ProfileKey { get; set; } = string.Empty;
+    public string Group { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string ImageUrl { get; set; } = string.Empty;
+}
+
+public class AdminBroadcastInput
+{
+    public string Subject { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+    public string Audience { get; set; } = "All";
+    public List<string> SelectedRecipients { get; set; } = [];
+}
+
+public class AdminAnnouncementItem
+{
+    public string Subject { get; set; } = string.Empty;
+    public string Audience { get; set; } = string.Empty;
+    public int RecipientCount { get; set; }
+    public string BodyPreview { get; set; } = string.Empty;
+    public DateTime SentAtUtc { get; set; }
+}
+
 public class ContactSubmission
 {
     public string Name { get; set; } = string.Empty;
@@ -90,9 +133,13 @@ public class ContactSubmission
 public class AdminDashboardViewModel
 {
     public List<DashboardStat> Stats { get; set; } = [];
+    public List<DashboardPersonItem> People { get; set; } = [];
+    public List<AdminProfileTarget> ProfileTargets { get; set; } = [];
+    public List<AdminAnnouncementItem> RecentAnnouncements { get; set; } = [];
     public List<AdminCommentItem> RecentComments { get; set; } = [];
     public List<AdminContactItem> RecentContacts { get; set; } = [];
     public List<AdminRegistrationItem> RecentRegistrations { get; set; } = [];
+    public string LiveUpdatedAtUtc { get; set; } = string.Empty;
 }
 
 public class DashboardStat

@@ -1,16 +1,25 @@
 @model AdminDashboardViewModel
 @{
     ViewData["Title"] = "Admin Dashboard";
+    var members = Model.People.Where(person => person.Role == "Member").ToList();
+    var admins = Model.People.Where(person => person.Role == "Admin").ToList();
 }
 
-@if (TempData["AdminMessage"] is string msg)
+@if (TempData["AdminMessage"] is string message)
 {
-    <div class="alert @(TempData["AdminMessageType"] as string == "error" ? "alert-error" : "alert-success")">@msg</div>
+    <div class="alert @(TempData["AdminMessageType"] as string == "error" ? "alert-error" : "alert-success")">@message</div>
 }
 
-<section class="hero glass">
-    <h1>Admin Dashboard</h1>
-    <p>Overview of members, content, registrations, and inbound messages.</p>
+<section class="hero glass admin-hero">
+    <div>
+        <h1>Admin Dashboard</h1>
+        <p>Manage broadcasts, monitor live membership data, and keep team profiles current from one place.</p>
+    </div>
+    <div class="hero-badges">
+        <span class="chip">Live roster</span>
+        <span class="chip">Email broadcast</span>
+        <span class="chip">Image manager</span>
+    </div>
 </section>
 
 <section class="stats-grid">
@@ -24,60 +33,192 @@
     }
 </section>
 
+<section class="dashboard-grid" id="adminDashboard">
+    <article class="card glass chart-card">
+        <div class="admin-header-row">
+            <div>
+                <h2>Live Members & Admins</h2>
+                <p class="muted">The chart refreshes automatically so the dashboard stays current.</p>
+            </div>
+            <small id="liveUpdatedAt" class="muted">Updated @Model.LiveUpdatedAtUtc</small>
+        </div>
+        <canvas id="roleChart" class="live-chart" aria-label="Live role chart"></canvas>
+        <div class="chart-meta">
+            <span class="metric-pill">Members <strong id="membersCount">@members.Count</strong></span>
+            <span class="metric-pill">Admins <strong id="adminsCount">@admins.Count</strong></span>
+            <span class="metric-pill">Total <strong id="totalPeopleCount">@Model.People.Count</strong></span>
+        </div>
+    </article>
+
+    <article class="card glass">
+        <div class="admin-header-row">
+            <div>
+                <h2>Broadcast Email</h2>
+                <p class="muted">Default sends to all members. Switch to custom to choose specific recipients.</p>
+            </div>
+        </div>
+        <form asp-controller="Admin" asp-action="SendAnnouncement" method="post" class="broadcast-form">
+            @Html.AntiForgeryToken()
+            <label>
+                Subject
+                <input type="text" name="Subject" placeholder="Enter subject line" required />
+            </label>
+            <label>
+                Message
+                <textarea name="Body" rows="7" placeholder="Write the announcement email" required></textarea>
+            </label>
+            <div class="recipient-choice">
+                <label class="recipient-option">
+                    <input type="radio" name="Audience" value="All" checked />
+                    Send to all members
+                </label>
+                <label class="recipient-option">
+                    <input type="radio" name="Audience" value="Custom" />
+                    Send to selected members
+                </label>
+            </div>
+            <div class="recipient-pool is-hidden" id="customRecipients">
+                @foreach (var member in members)
+                {
+                    <label class="recipient-chip">
+                        <input type="checkbox" name="SelectedRecipients" value="@member.Email" />
+                        <span>
+                            <strong>@member.Name</strong>
+                            <small>@member.Email</small>
+                        </span>
+                    </label>
+                }
+            </div>
+            <button type="submit" class="btn-primary">Queue Email</button>
+        </form>
+    </article>
+</section>
+
 <section class="card glass">
     <div class="admin-header-row">
-        <h2>Recent Comments</h2>
-    </div>
-    @if (!Model.RecentComments.Any())
-    {
-        <p class="muted">No comments found.</p>
-    }
-    else
-    {
-        <div class="admin-list">
-            @foreach (var item in Model.RecentComments)
-            {
-                <article class="admin-item">
-                    <strong>@item.ProjectTitle</strong>
-                    <p>@item.Content</p>
-                    <small>
-                        By @item.AuthorEmail · @item.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")
-                        · Status: @item.ModerationStatus · Reports: @item.ReportCount
-                    </small>
-                    <div class="admin-actions-row">
-                        @if (item.ModerationStatus == "Hidden")
-                        {
-                            <form asp-controller="Admin" asp-action="RestoreComment" method="post" class="inline-form">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="commentId" value="@item.Id" />
-                                <button type="submit" class="btn-secondary">Restore</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <form asp-controller="Admin" asp-action="HideComment" method="post" class="inline-form">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="commentId" value="@item.Id" />
-                                <button type="submit" class="btn-danger">Hide</button>
-                            </form>
-                        }
-
-                        <form asp-controller="Admin" asp-action="ClearReports" method="post" class="inline-form">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="commentId" value="@item.Id" />
-                            <button type="submit" class="btn-secondary">Clear Reports</button>
-                        </form>
-                    </div>
-                </article>
-            }
+        <div>
+            <h2>People Directory</h2>
+            <p class="muted">All members and admin accounts shown together for quick review.</p>
         </div>
-    }
+    </div>
+    <div class="table-card">
+        <table class="directory-table">
+            <thead>
+                <tr>
+                    <th>Role</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Student ID</th>
+                </tr>
+            </thead>
+            <tbody id="peopleTableBody">
+                @foreach (var person in Model.People)
+                {
+                    <tr>
+                        <td><span class="chip">@person.Role</span></td>
+                        <td>@person.Name</td>
+                        <td>@person.Email</td>
+                        <td>@person.Department</td>
+                        <td>@person.StudentId</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </section>
 
 <section class="two-column">
     <article class="card glass">
         <div class="admin-header-row">
-            <h2>Recent Contacts</h2>
+            <div>
+                <h2>Recent Email Broadcasts</h2>
+                <p class="muted">Saved broadcasts and recipient counts.</p>
+            </div>
+        </div>
+        @if (!Model.RecentAnnouncements.Any())
+        {
+            <p class="muted">No broadcasts have been queued yet.</p>
+        }
+        else
+        {
+            <div class="admin-list">
+                @foreach (var item in Model.RecentAnnouncements)
+                {
+                    <article class="admin-item">
+                        <strong>@item.Subject</strong>
+                        <p>@item.BodyPreview</p>
+                        <small>
+                            Audience: @item.Audience · Recipients: @item.RecipientCount ·
+                            @item.SentAtUtc.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")
+                        </small>
+                    </article>
+                }
+            </div>
+        }
+    </article>
+
+    <article class="card glass">
+        <div class="admin-header-row">
+            <div>
+                <h2>Recent Comments</h2>
+                <p class="muted">Moderation queue and report status.</p>
+            </div>
+        </div>
+        @if (!Model.RecentComments.Any())
+        {
+            <p class="muted">No comments found.</p>
+        }
+        else
+        {
+            <div class="admin-list">
+                @foreach (var item in Model.RecentComments)
+                {
+                    <article class="admin-item">
+                        <strong>@item.ProjectTitle</strong>
+                        <p>@item.Content</p>
+                        <small>
+                            By @item.AuthorEmail · @item.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")
+                            · Status: @item.ModerationStatus · Reports: @item.ReportCount
+                        </small>
+                        <div class="admin-actions-row">
+                            @if (item.ModerationStatus == "Hidden")
+                            {
+                                <form asp-controller="Admin" asp-action="RestoreComment" method="post" class="inline-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="commentId" value="@item.Id" />
+                                    <button type="submit" class="btn-secondary">Restore</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-controller="Admin" asp-action="HideComment" method="post" class="inline-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="commentId" value="@item.Id" />
+                                    <button type="submit" class="btn-danger">Hide</button>
+                                </form>
+                            }
+
+                            <form asp-controller="Admin" asp-action="ClearReports" method="post" class="inline-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="commentId" value="@item.Id" />
+                                <button type="submit" class="btn-secondary">Clear Reports</button>
+                            </form>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </article>
+</section>
+
+<section class="two-column">
+    <article class="card glass">
+        <div class="admin-header-row">
+            <div>
+                <h2>Recent Contacts</h2>
+                <p class="muted">Latest inquiries from the contact page.</p>
+            </div>
             <a asp-controller="Admin" asp-action="ExportContactsCsv" class="btn-secondary">Export CSV</a>
         </div>
         @if (!Model.RecentContacts.Any())
@@ -120,4 +261,28 @@
             </div>
         }
     </article>
+</section>
+
+<section class="card glass">
+    <div class="admin-header-row">
+        <div>
+            <h2>Profile Image Uploads</h2>
+            <p class="muted">Upload new photos for Meet the Team and Advisors profiles.</p>
+        </div>
+    </div>
+    <div class="profile-upload-grid">
+        @foreach (var target in Model.ProfileTargets)
+        {
+            <form asp-controller="Admin" asp-action="UploadProfileImage" method="post" enctype="multipart/form-data" class="profile-upload-card">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="profileKey" value="@target.ProfileKey" />
+                <img src="@target.ImageUrl" alt="@target.Name" />
+                <strong>@target.Name</strong>
+                <span class="chip">@target.Group</span>
+                <small>@target.Email</small>
+                <input type="file" name="image" accept="image/*" required />
+                <button type="submit" class="btn-secondary">Upload picture</button>
+            </form>
+        }
+    </div>
 </section>

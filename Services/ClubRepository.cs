@@ -26,18 +26,85 @@ public static class ClubRepository
         ]
     };
 
-    public static List<PersonProfile> GetExecutives() =>
-    [
-        new PersonProfile { Name = "Arafat Hossain", Position = "President", Department = "EEE", Email = "president@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Leads strategic planning, partnerships, and annual roadmap." },
-        new PersonProfile { Name = "Nabila Sultana", Position = "General Secretary", Department = "CSE", Email = "secretary@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Coordinates operations and cross-team execution." },
-        new PersonProfile { Name = "Tanvir Hasan", Position = "Technical Lead", Department = "ECE", Email = "techlead@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Owns workshop curriculum and project mentoring." }
-    ];
+    public static List<PersonProfile> GetExecutives()
+    {
+        EnsureInitialized();
 
-    public static List<PersonProfile> GetAdvisors() =>
-    [
-        new PersonProfile { Name = "Dr. Farhana Rahman", Position = "Faculty Advisor", Department = "ECE", Email = "farhana.rahman@kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://kuet.ac.bd", ImageUrl = "https://placehold.co/300x300", Bio = "Mentors VLSI/FPGA research initiatives." },
-        new PersonProfile { Name = "Dr. Saifuddin Ahmed", Position = "Co-Advisor", Department = "CSE", Email = "saifuddin.ahmed@kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://kuet.ac.bd", ImageUrl = "https://placehold.co/300x300", Bio = "Guides systems and benchmark methodology." }
-    ];
+        var profiles = new List<PersonProfile>
+        {
+            new() { Name = "Arafat Hossain", Position = "President", Department = "EEE", Email = "president@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Leads strategic planning, partnerships, and annual roadmap." },
+            new() { Name = "Nabila Sultana", Position = "General Secretary", Department = "CSE", Email = "secretary@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Coordinates operations and cross-team execution." },
+            new() { Name = "Tanvir Hasan", Position = "Technical Lead", Department = "ECE", Email = "techlead@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Owns workshop curriculum and project mentoring." }
+        };
+
+        return ApplyProfileImageOverrides("executive", profiles);
+    }
+
+    public static List<PersonProfile> GetAdvisors()
+    {
+        EnsureInitialized();
+
+        var profiles = new List<PersonProfile>
+        {
+            new() { Name = "Dr. Farhana Rahman", Position = "Faculty Advisor", Department = "ECE", Email = "farhana.rahman@kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://kuet.ac.bd", ImageUrl = "https://placehold.co/300x300", Bio = "Mentors VLSI/FPGA research initiatives." },
+            new() { Name = "Dr. Saifuddin Ahmed", Position = "Co-Advisor", Department = "CSE", Email = "saifuddin.ahmed@kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://kuet.ac.bd", ImageUrl = "https://placehold.co/300x300", Bio = "Guides systems and benchmark methodology." }
+        };
+
+        return ApplyProfileImageOverrides("advisor", profiles);
+    }
+
+    public static List<AdminProfileTarget> GetProfileTargets()
+    {
+        EnsureInitialized();
+
+        var targets = new List<AdminProfileTarget>();
+        targets.AddRange(GetExecutives().Select(profile => new AdminProfileTarget
+        {
+            ProfileKey = BuildProfileKey("executive", profile.Email),
+            Group = "Meet the Team",
+            Name = profile.Name,
+            Email = profile.Email,
+            ImageUrl = profile.ImageUrl
+        }));
+
+        targets.AddRange(GetAdvisors().Select(profile => new AdminProfileTarget
+        {
+            ProfileKey = BuildProfileKey("advisor", profile.Email),
+            Group = "Advisors",
+            Name = profile.Name,
+            Email = profile.Email,
+            ImageUrl = profile.ImageUrl
+        }));
+
+        return targets;
+    }
+
+    public static List<MemberDirectoryItem> GetMemberDirectory()
+    {
+        EnsureInitialized();
+        var items = new List<MemberDirectoryItem>();
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT FullName, Email, StudentId, Department
+            FROM Members
+            ORDER BY FullName COLLATE NOCASE;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            items.Add(new MemberDirectoryItem
+            {
+                FullName = reader.GetString(0),
+                Email = reader.GetString(1),
+                StudentId = reader.GetString(2),
+                Department = reader.GetString(3)
+            });
+        }
+
+        return items;
+    }
 
     public static ProjectsPageViewModel GetProjectsPage(string currentUserEmail)
     {
@@ -370,11 +437,124 @@ public static class ClubRepository
             new() { Label = "Subscribers", Value = Count(connection, "NewsletterSubscribers"), Subtext = "Newsletter audience" }
         };
 
+        dashboard.ProfileTargets = GetProfileTargets();
+        dashboard.RecentAnnouncements = GetRecentAnnouncements(connection);
         dashboard.RecentComments = GetRecentComments(connection);
         dashboard.RecentContacts = GetRecentContacts(connection);
         dashboard.RecentRegistrations = GetRecentRegistrations(connection);
 
         return dashboard;
+    }
+
+    public static List<PersonProfile> ApplyProfileImageOverrides(string roleKey, List<PersonProfile> profiles)
+    {
+        EnsureInitialized();
+
+        using var connection = OpenConnection();
+        var overrides = GetProfileImageOverrides(connection);
+
+        foreach (var profile in profiles)
+        {
+            var profileKey = BuildProfileKey(roleKey, profile.Email);
+            if (overrides.TryGetValue(profileKey, out var imageUrl))
+            {
+                profile.ImageUrl = imageUrl;
+            }
+        }
+
+        return profiles;
+    }
+
+    public static (bool success, string message) SaveAnnouncement(string subject, string body, string audience, IEnumerable<string> recipients)
+    {
+        EnsureInitialized();
+
+        var normalizedSubject = (subject ?? string.Empty).Trim();
+        var normalizedBody = (body ?? string.Empty).Trim();
+        var normalizedAudience = (audience ?? string.Empty).Trim();
+        var recipientList = recipients
+            .Select(Normalize)
+            .Where(email => !string.IsNullOrWhiteSpace(email))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (string.IsNullOrWhiteSpace(normalizedSubject) || string.IsNullOrWhiteSpace(normalizedBody))
+        {
+            return (false, "Subject and message are required.");
+        }
+
+        if (recipientList.Count == 0)
+        {
+            return (false, "Please choose at least one member.");
+        }
+
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        long announcementId;
+        using (var insertAnnouncement = connection.CreateCommand())
+        {
+            insertAnnouncement.Transaction = transaction;
+            insertAnnouncement.CommandText = @"
+                INSERT INTO EmailAnnouncements (Subject, Body, Audience, RecipientCount, SentAtUtc)
+                VALUES ($subject, $body, $audience, $recipientCount, $sentAtUtc);";
+            insertAnnouncement.Parameters.AddWithValue("$subject", normalizedSubject);
+            insertAnnouncement.Parameters.AddWithValue("$body", normalizedBody);
+            insertAnnouncement.Parameters.AddWithValue("$audience", normalizedAudience);
+            insertAnnouncement.Parameters.AddWithValue("$recipientCount", recipientList.Count);
+            insertAnnouncement.Parameters.AddWithValue("$sentAtUtc", DateTime.UtcNow.ToString("O"));
+            insertAnnouncement.ExecuteNonQuery();
+        }
+
+        using (var idCommand = connection.CreateCommand())
+        {
+            idCommand.Transaction = transaction;
+            idCommand.CommandText = "SELECT last_insert_rowid();";
+            announcementId = Convert.ToInt64(idCommand.ExecuteScalar());
+        }
+
+        foreach (var recipient in recipientList)
+        {
+            using var recipientCommand = connection.CreateCommand();
+            recipientCommand.Transaction = transaction;
+            recipientCommand.CommandText = @"
+                INSERT INTO EmailAnnouncementRecipients (AnnouncementId, RecipientEmail)
+                VALUES ($announcementId, $recipientEmail);";
+            recipientCommand.Parameters.AddWithValue("$announcementId", announcementId);
+            recipientCommand.Parameters.AddWithValue("$recipientEmail", recipient);
+            recipientCommand.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+        return (true, $"Broadcast queued for {recipientList.Count} member{(recipientList.Count == 1 ? string.Empty : "s")}." );
+    }
+
+    public static (bool success, string message) SetProfileImageOverride(string profileKey, string imageUrl)
+    {
+        EnsureInitialized();
+
+        var normalizedProfileKey = (profileKey ?? string.Empty).Trim().ToLowerInvariant();
+        var normalizedImageUrl = (imageUrl ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalizedProfileKey) || string.IsNullOrWhiteSpace(normalizedImageUrl))
+        {
+            return (false, "Profile image could not be saved.");
+        }
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            INSERT INTO ProfileImageOverrides (ProfileKey, ImageUrl, UpdatedAtUtc)
+            VALUES ($profileKey, $imageUrl, $updatedAtUtc)
+            ON CONFLICT(ProfileKey) DO UPDATE SET
+                ImageUrl = excluded.ImageUrl,
+                UpdatedAtUtc = excluded.UpdatedAtUtc;";
+        command.Parameters.AddWithValue("$profileKey", normalizedProfileKey);
+        command.Parameters.AddWithValue("$imageUrl", normalizedImageUrl);
+        command.Parameters.AddWithValue("$updatedAtUtc", DateTime.UtcNow.ToString("O"));
+
+        return command.ExecuteNonQuery() > 0
+            ? (true, "Profile image updated.")
+            : (false, "Profile image could not be saved.");
     }
 
     public static bool SetCommentModerationStatus(int commentId, string moderationStatus)
@@ -628,6 +808,28 @@ public static class ClubRepository
                     Topic TEXT NOT NULL,
                     Message TEXT NOT NULL,
                     SubmittedAtUtc TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS EmailAnnouncements (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Subject TEXT NOT NULL,
+                    Body TEXT NOT NULL,
+                    Audience TEXT NOT NULL,
+                    RecipientCount INTEGER NOT NULL,
+                    SentAtUtc TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS EmailAnnouncementRecipients (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    AnnouncementId INTEGER NOT NULL,
+                    RecipientEmail TEXT NOT NULL,
+                    FOREIGN KEY (AnnouncementId) REFERENCES EmailAnnouncements(Id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS ProfileImageOverrides (
+                    ProfileKey TEXT PRIMARY KEY,
+                    ImageUrl TEXT NOT NULL,
+                    UpdatedAtUtc TEXT NOT NULL
                 );";
             command.ExecuteNonQuery();
 
@@ -716,6 +918,50 @@ public static class ClubRepository
             command.ExecuteNonQuery();
         }
     }
+
+    private static List<AdminAnnouncementItem> GetRecentAnnouncements(SqliteConnection connection)
+    {
+        var items = new List<AdminAnnouncementItem>();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT Subject, Body, Audience, RecipientCount, SentAtUtc
+            FROM EmailAnnouncements
+            ORDER BY SentAtUtc DESC
+            LIMIT 6;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var body = reader.GetString(1);
+            items.Add(new AdminAnnouncementItem
+            {
+                Subject = reader.GetString(0),
+                BodyPreview = body.Length > 120 ? body[..120] + "..." : body,
+                Audience = reader.GetString(2),
+                RecipientCount = reader.GetInt32(3),
+                SentAtUtc = DateTime.Parse(reader.GetString(4))
+            });
+        }
+
+        return items;
+    }
+
+    private static Dictionary<string, string> GetProfileImageOverrides(SqliteConnection connection)
+    {
+        var items = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT ProfileKey, ImageUrl FROM ProfileImageOverrides;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            items[reader.GetString(0)] = reader.GetString(1);
+        }
+
+        return items;
+    }
+
+    private static string BuildProfileKey(string roleKey, string email) => $"{roleKey.Trim().ToLowerInvariant()}:{Normalize(email)}";
 
     private static SqliteConnection OpenConnection()
     {
