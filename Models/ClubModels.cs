@@ -84,6 +84,7 @@ public class MemberDirectoryItem
     public string Email { get; set; } = string.Empty;
     public string StudentId { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
+    public string ImageUrl { get; set; } = string.Empty;
 }
 
 public class DashboardPersonItem

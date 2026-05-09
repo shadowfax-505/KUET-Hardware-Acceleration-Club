@@ -87,7 +87,7 @@ public static class ClubRepository
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
         command.CommandText = @"
-            SELECT FullName, Email, StudentId, Department
+            SELECT FullName, Email, StudentId, Department, IFNULL(ImageUrl, '')
             FROM Members
             ORDER BY FullName COLLATE NOCASE;";
 
@@ -99,7 +99,8 @@ public static class ClubRepository
                 FullName = reader.GetString(0),
                 Email = reader.GetString(1),
                 StudentId = reader.GetString(2),
-                Department = reader.GetString(3)
+                Department = reader.GetString(3),
+                ImageUrl = reader.IsDBNull(4) ? string.Empty : reader.GetString(4)
             });
         }
 
@@ -164,7 +165,7 @@ public static class ClubRepository
         };
     }
 
-    public static (bool success, string message) RegisterMember(RegisterInput input)
+    public static (bool success, string message) RegisterMember(RegisterInput input, string? imageUrl = null)
     {
         EnsureInitialized();
         var email = Normalize(input.Email);
@@ -184,11 +185,12 @@ public static class ClubRepository
         using (var memberCommand = connection.CreateCommand())
         {
             memberCommand.Transaction = transaction;
-            memberCommand.CommandText = "INSERT INTO Members (Email, FullName, StudentId, Department) VALUES ($email, $fullName, $studentId, $department);";
+            memberCommand.CommandText = "INSERT INTO Members (Email, FullName, StudentId, Department, ImageUrl) VALUES ($email, $fullName, $studentId, $department, $imageUrl);";
             memberCommand.Parameters.AddWithValue("$email", email);
             memberCommand.Parameters.AddWithValue("$fullName", input.FullName.Trim());
             memberCommand.Parameters.AddWithValue("$studentId", input.StudentId.Trim());
             memberCommand.Parameters.AddWithValue("$department", input.Department.Trim());
+            memberCommand.Parameters.AddWithValue("$imageUrl", imageUrl ?? string.Empty);
             memberCommand.ExecuteNonQuery();
         }
 
@@ -451,14 +453,22 @@ public static class ClubRepository
         EnsureInitialized();
 
         using var connection = OpenConnection();
-        var overrides = GetProfileImageOverrides(connection);
+        var imageOverrides = GetProfileImageOverrides(connection);
+        var profileOverrides = GetProfileOverrides(connection);
 
         foreach (var profile in profiles)
         {
             var profileKey = BuildProfileKey(roleKey, profile.Email);
-            if (overrides.TryGetValue(profileKey, out var imageUrl))
+            if (imageOverrides.TryGetValue(profileKey, out var imageUrl))
             {
                 profile.ImageUrl = imageUrl;
+            }
+
+            if (profileOverrides.TryGetValue(profileKey, out var overrideEntry))
+            {
+                if (!string.IsNullOrWhiteSpace(overrideEntry.Name)) profile.Name = overrideEntry.Name;
+                if (!string.IsNullOrWhiteSpace(overrideEntry.Email)) profile.Email = overrideEntry.Email;
+                if (!string.IsNullOrWhiteSpace(overrideEntry.ImageUrl)) profile.ImageUrl = overrideEntry.ImageUrl;
             }
         }
 
@@ -743,7 +753,8 @@ public static class ClubRepository
                     Email TEXT PRIMARY KEY,
                     FullName TEXT NOT NULL,
                     StudentId TEXT NOT NULL,
-                    Department TEXT NOT NULL
+                    Department TEXT NOT NULL,
+                    ImageUrl TEXT
                 );
 
                 CREATE TABLE IF NOT EXISTS Credentials (
@@ -830,6 +841,14 @@ public static class ClubRepository
                     ProfileKey TEXT PRIMARY KEY,
                     ImageUrl TEXT NOT NULL,
                     UpdatedAtUtc TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS ProfileOverrides (
+                    ProfileKey TEXT PRIMARY KEY,
+                    Name TEXT,
+                    Email TEXT,
+                    ImageUrl TEXT,
+                    UpdatedAtUtc TEXT NOT NULL
                 );";
             command.ExecuteNonQuery();
 
@@ -864,11 +883,12 @@ public static class ClubRepository
         foreach (var member in seedMembers)
         {
             using var memberCommand = connection.CreateCommand();
-            memberCommand.CommandText = "INSERT INTO Members (Email, FullName, StudentId, Department) VALUES ($email, $fullName, $studentId, $department);";
+            memberCommand.CommandText = "INSERT INTO Members (Email, FullName, StudentId, Department, ImageUrl) VALUES ($email, $fullName, $studentId, $department, $imageUrl);";
             memberCommand.Parameters.AddWithValue("$email", member.Email);
             memberCommand.Parameters.AddWithValue("$fullName", member.FullName);
             memberCommand.Parameters.AddWithValue("$studentId", member.StudentId);
             memberCommand.Parameters.AddWithValue("$department", member.Department);
+            memberCommand.Parameters.AddWithValue("$imageUrl", "");
             memberCommand.ExecuteNonQuery();
 
             using var credentialCommand = connection.CreateCommand();
@@ -961,6 +981,49 @@ public static class ClubRepository
         return items;
     }
 
+    private static Dictionary<string, (string Name, string Email, string ImageUrl)> GetProfileOverrides(SqliteConnection connection)
+    {
+        var items = new Dictionary<string, (string, string, string)>(StringComparer.OrdinalIgnoreCase);
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT ProfileKey, Name, Email, IFNULL(ImageUrl, '') FROM ProfileOverrides;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            items[reader.GetString(0)] = (reader.IsDBNull(1) ? string.Empty : reader.GetString(1), reader.IsDBNull(2) ? string.Empty : reader.GetString(2), reader.IsDBNull(3) ? string.Empty : reader.GetString(3));
+        }
+
+        return items;
+    }
+
+    public static (bool success, string message) SetProfileOverride(string profileKey, string? name, string? email)
+    {
+        EnsureInitialized();
+
+        var normalizedProfileKey = (profileKey ?? string.Empty).Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(normalizedProfileKey))
+        {
+            return (false, "Invalid profile target.");
+        }
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            INSERT INTO ProfileOverrides (ProfileKey, Name, Email, ImageUrl, UpdatedAtUtc)
+            VALUES ($profileKey, $name, $email, (SELECT ImageUrl FROM ProfileOverrides WHERE ProfileKey = $profileKey), $updatedAtUtc)
+            ON CONFLICT(ProfileKey) DO UPDATE SET
+                Name = excluded.Name,
+                Email = excluded.Email,
+                UpdatedAtUtc = excluded.UpdatedAtUtc;";
+        command.Parameters.AddWithValue("$profileKey", normalizedProfileKey);
+        command.Parameters.AddWithValue("$name", name ?? string.Empty);
+        command.Parameters.AddWithValue("$email", email ?? string.Empty);
+        command.Parameters.AddWithValue("$updatedAtUtc", DateTime.UtcNow.ToString("O"));
+
+        return command.ExecuteNonQuery() > 0
+            ? (true, "Profile details saved.")
+            : (false, "Could not save profile details.");
+    }
     private static string BuildProfileKey(string roleKey, string email) => $"{roleKey.Trim().ToLowerInvariant()}:{Normalize(email)}";
 
     private static SqliteConnection OpenConnection()

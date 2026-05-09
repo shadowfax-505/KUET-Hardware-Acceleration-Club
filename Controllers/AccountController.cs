@@ -9,11 +9,13 @@ public class AccountController : Controller
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
-    public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+    public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IWebHostEnvironment webHostEnvironment)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _webHostEnvironment = webHostEnvironment;
     }
 
     [HttpGet]
@@ -21,7 +23,7 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterInput input)
+    public async Task<IActionResult> Register(RegisterInput input, IFormFile? profileImage)
     {
         var email = input.Email.Trim().ToLowerInvariant();
         var existing = await _userManager.FindByEmailAsync(email);
@@ -47,7 +49,23 @@ public class AccountController : Controller
             return RedirectToAction(nameof(Auth));
         }
 
-        var memberResult = ClubRepository.RegisterMember(input);
+        string? imageUrl = null;
+        if (profileImage is not null && profileImage.Length > 0)
+        {
+            var uploadsRoot = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "members");
+            Directory.CreateDirectory(uploadsRoot);
+            var ext = Path.GetExtension(profileImage.FileName).ToLowerInvariant();
+            var safeName = email.Replace("@", "-").Replace(".", "-");
+            var fileName = $"{safeName}-{DateTime.UtcNow:yyyyMMddHHmmss}{ext}";
+            var filePath = Path.Combine(uploadsRoot, fileName);
+            await using (var stream = System.IO.File.Create(filePath))
+            {
+                await profileImage.CopyToAsync(stream);
+            }
+            imageUrl = $"/uploads/members/{fileName}";
+        }
+
+        var memberResult = ClubRepository.RegisterMember(input, imageUrl);
         if (!memberResult.success)
         {
             await _userManager.DeleteAsync(user);

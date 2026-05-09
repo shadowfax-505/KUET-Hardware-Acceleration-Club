@@ -10,7 +10,7 @@
 <section class="two-column">
     <article class="card glass">
         <h2>Register as Member</h2>
-        <form asp-controller="Account" asp-action="Register" method="post">
+        <form asp-controller="Account" asp-action="Register" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <label>Full Name</label>
             <input type="text" name="FullName" required />
@@ -26,6 +26,9 @@
 
             <label>Password</label>
             <input type="password" name="Password" required />
+
+            <label>Profile picture (optional)</label>
+            <input type="file" name="profileImage" accept="image/*" />
 
             <button type="submit" class="btn-primary">Register</button>
         </form>

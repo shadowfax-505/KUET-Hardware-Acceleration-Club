@@ -140,6 +140,16 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult SaveProfileDetails(string profileKey, string name, string email)
+    {
+        var result = ClubRepository.SetProfileOverride(profileKey, name, email);
+        TempData["AdminMessage"] = result.message;
+        TempData["AdminMessageType"] = result.success ? "success" : "error";
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpGet]
     public IActionResult ExportContactsCsv()
     {

@@ -273,16 +273,28 @@
     <div class="profile-upload-grid">
         @foreach (var target in Model.ProfileTargets)
         {
-            <form asp-controller="Admin" asp-action="UploadProfileImage" method="post" enctype="multipart/form-data" class="profile-upload-card">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="profileKey" value="@target.ProfileKey" />
-                <img src="@target.ImageUrl" alt="@target.Name" />
-                <strong>@target.Name</strong>
-                <span class="chip">@target.Group</span>
-                <small>@target.Email</small>
-                <input type="file" name="image" accept="image/*" required />
-                <button type="submit" class="btn-secondary">Upload picture</button>
-            </form>
+            <div class="profile-upload-card">
+                <form asp-controller="Admin" asp-action="UploadProfileImage" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="profileKey" value="@target.ProfileKey" />
+                    <img src="@target.ImageUrl" alt="@target.Name" />
+                    <strong>@target.Name</strong>
+                    <span class="chip">@target.Group</span>
+                    <small>@target.Email</small>
+                    <input type="file" name="image" accept="image/*" />
+                    <button type="submit" class="btn-secondary">Upload picture</button>
+                </form>
+
+                <form asp-controller="Admin" asp-action="SaveProfileDetails" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="profileKey" value="@target.ProfileKey" />
+                    <label>Name</label>
+                    <input type="text" name="name" value="@target.Name" />
+                    <label>Email</label>
+                    <input type="email" name="email" value="@target.Email" />
+                    <button type="submit" class="btn-primary">Save details</button>
+                </form>
+            </div>
         }
     </div>
 </section>
