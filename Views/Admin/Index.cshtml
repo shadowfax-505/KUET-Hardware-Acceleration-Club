@@ -151,17 +151,20 @@
         <form asp-controller="Admin" asp-action="AddEvent" method="post" class="broadcast-form">
             @Html.AntiForgeryToken()
             <label>Type
-                <input type="text" name="Type" placeholder="Workshop / Hackathon / Talk" required />
+                <input type="text" name="Type" placeholder="Workshop / Hackathon / Talk" minlength="3" maxlength="40" required />
             </label>
+            <small class="muted">Use a short label like Workshop, Hackathon, or Talk.</small>
             <label>Name
-                <input type="text" name="Name" placeholder="Event title" required />
+                <input type="text" name="Name" placeholder="Event title" minlength="5" maxlength="120" required />
             </label>
+            <small class="muted">Event name should be at least 5 characters.</small>
             <label>Date and Venue
-                <input type="text" name="DateAndVenue" placeholder="May 28, 2026 · KUET" required />
+                <input type="text" name="DateAndVenue" placeholder="May 28, 2026 · KUET" minlength="5" maxlength="150" required />
             </label>
             <label>Description
-                <textarea name="Description" rows="3" placeholder="Event details" required></textarea>
+                <textarea name="Description" rows="3" placeholder="Event details" minlength="10" maxlength="600" required></textarea>
             </label>
+            <small class="muted">Description should be concise and at least 10 characters.</small>
             <button type="submit" class="btn-primary">Add Event</button>
         </form>
 
@@ -179,16 +182,16 @@
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="Id" value="@ev.Id" />
                             <label>Type
-                                <input type="text" name="Type" value="@ev.Type" required />
+                                <input type="text" name="Type" value="@ev.Type" minlength="3" maxlength="40" required />
                             </label>
                             <label>Name
-                                <input type="text" name="Name" value="@ev.Name" required />
+                                <input type="text" name="Name" value="@ev.Name" minlength="5" maxlength="120" required />
                             </label>
                             <label>Date and Venue
-                                <input type="text" name="DateAndVenue" value="@ev.DateAndVenue" required />
+                                <input type="text" name="DateAndVenue" value="@ev.DateAndVenue" minlength="5" maxlength="150" required />
                             </label>
                             <label>Description
-                                <textarea name="Description" rows="3" required>@ev.Description</textarea>
+                                <textarea name="Description" rows="3" minlength="10" maxlength="600" required>@ev.Description</textarea>
                             </label>
                             <div class="admin-actions-row">
                                 <button type="submit" class="btn-secondary">Save Changes</button>
