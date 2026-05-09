@@ -1,0 +1,23 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Hardware Acceleration Club logo</title>
+  <desc id="desc">A premium chip-inspired emblem with gold circuitry and an acceleration bolt.</desc>
+  <defs>
+    <linearGradient id="shell" x1="12" y1="12" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF9"/>
+      <stop offset="1" stop-color="#E8D2B4"/>
+    </linearGradient>
+    <linearGradient id="core" x1="21" y1="21" x2="43" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F3D99B"/>
+      <stop offset="1" stop-color="#C48A41"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="28" y1="24" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8D5A22"/>
+      <stop offset="1" stop-color="#5F3910"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="12" width="40" height="40" rx="12" fill="url(#shell)" stroke="#BFA581" stroke-width="2.4"/>
+  <rect x="19.5" y="19.5" width="25" height="25" rx="7" fill="url(#core)" stroke="#9C6A2B" stroke-width="1.8"/>
+  <rect x="24" y="24" width="16" height="16" rx="4.5" fill="#FFF5E3" fill-opacity="0.34" stroke="#FFF9F0" stroke-opacity="0.45"/>
+  <path d="M32 15V10M39 16.2V10.5M46 19.6L49.5 16.1M15 32H10M16.2 25L12.7 21.5M16.2 39L12.7 42.5M32 54V49M39 52.8V47.3M46 48.4L49.5 51.9M54 32H49M52.8 25L56.3 21.5M52.8 39L56.3 42.5" stroke="#B07A34" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M35.2 23.8L28.9 34.2H33.3L30.9 40.4L40.2 29.4H35.9L38.1 23.8H35.2Z" fill="url(#bolt)"/>
+</svg>

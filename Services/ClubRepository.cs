@@ -32,9 +32,9 @@ public static class ClubRepository
 
         var profiles = new List<PersonProfile>
         {
-            new() { Name = "Arafat Hossain", Position = "President", Department = "EEE", Email = "president@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Leads strategic planning, partnerships, and annual roadmap." },
-            new() { Name = "Nabila Sultana", Position = "General Secretary", Department = "CSE", Email = "secretary@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Coordinates operations and cross-team execution." },
-            new() { Name = "Tanvir Hasan", Position = "Technical Lead", Department = "ECE", Email = "techlead@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Owns workshop curriculum and project mentoring." }
+            new() { ProfileKey = "executive:president@hack.kuet.ac.bd", Name = "Arafat Hossain", Position = "President", Department = "EEE", Email = "president@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Leads strategic planning, partnerships, and annual roadmap." },
+            new() { ProfileKey = "executive:secretary@hack.kuet.ac.bd", Name = "Nabila Sultana", Position = "General Secretary", Department = "CSE", Email = "secretary@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Coordinates operations and cross-team execution." },
+            new() { ProfileKey = "executive:techlead@hack.kuet.ac.bd", Name = "Tanvir Hasan", Position = "Technical Lead", Department = "ECE", Email = "techlead@hack.kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://linkedin.com", ImageUrl = "https://placehold.co/300x300", Bio = "Owns workshop curriculum and project mentoring." }
         };
 
         return ApplyProfileImageOverrides("executive", profiles);
@@ -46,8 +46,8 @@ public static class ClubRepository
 
         var profiles = new List<PersonProfile>
         {
-            new() { Name = "Dr. Farhana Rahman", Position = "Faculty Advisor", Department = "ECE", Email = "farhana.rahman@kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://kuet.ac.bd", ImageUrl = "https://placehold.co/300x300", Bio = "Mentors VLSI/FPGA research initiatives." },
-            new() { Name = "Dr. Saifuddin Ahmed", Position = "Co-Advisor", Department = "CSE", Email = "saifuddin.ahmed@kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://kuet.ac.bd", ImageUrl = "https://placehold.co/300x300", Bio = "Guides systems and benchmark methodology." }
+            new() { ProfileKey = "advisor:farhana.rahman@kuet.ac.bd", Name = "Dr. Farhana Rahman", Position = "Faculty Advisor", Department = "ECE", Email = "farhana.rahman@kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://kuet.ac.bd", ImageUrl = "https://placehold.co/300x300", Bio = "Mentors VLSI/FPGA research initiatives." },
+            new() { ProfileKey = "advisor:saifuddin.ahmed@kuet.ac.bd", Name = "Dr. Saifuddin Ahmed", Position = "Co-Advisor", Department = "CSE", Email = "saifuddin.ahmed@kuet.ac.bd", Phone = "+8801XXXXXXXXX", LinkedIn = "https://kuet.ac.bd", ImageUrl = "https://placehold.co/300x300", Bio = "Guides systems and benchmark methodology." }
         };
 
         return ApplyProfileImageOverrides("advisor", profiles);
@@ -60,7 +60,7 @@ public static class ClubRepository
         var targets = new List<AdminProfileTarget>();
         targets.AddRange(GetExecutives().Select(profile => new AdminProfileTarget
         {
-            ProfileKey = BuildProfileKey("executive", profile.Email),
+            ProfileKey = profile.ProfileKey,
             Group = "Meet the Team",
             Name = profile.Name,
             Email = profile.Email,
@@ -69,7 +69,7 @@ public static class ClubRepository
 
         targets.AddRange(GetAdvisors().Select(profile => new AdminProfileTarget
         {
-            ProfileKey = BuildProfileKey("advisor", profile.Email),
+            ProfileKey = profile.ProfileKey,
             Group = "Advisors",
             Name = profile.Name,
             Email = profile.Email,
@@ -458,7 +458,7 @@ public static class ClubRepository
 
         foreach (var profile in profiles)
         {
-            var profileKey = BuildProfileKey(roleKey, profile.Email);
+            var profileKey = string.IsNullOrWhiteSpace(profile.ProfileKey) ? BuildProfileKey(roleKey, profile.Email) : profile.ProfileKey;
             if (imageOverrides.TryGetValue(profileKey, out var imageUrl))
             {
                 profile.ImageUrl = imageUrl;
@@ -852,6 +852,8 @@ public static class ClubRepository
                 );";
             command.ExecuteNonQuery();
 
+            EnsureColumnExists(connection, "Members", "ImageUrl", "TEXT");
+
             SeedIfEmpty(connection);
             _initialized = true;
         }
@@ -1044,6 +1046,32 @@ public static class ClubRepository
         command.CommandText = "SELECT COUNT(1) FROM Members WHERE Email = $email;";
         command.Parameters.AddWithValue("$email", email);
         return Convert.ToInt32(command.ExecuteScalar()) > 0;
+    }
+
+    private static void EnsureColumnExists(SqliteConnection connection, string tableName, string columnName, string columnDefinition)
+    {
+        using var pragma = connection.CreateCommand();
+        pragma.CommandText = $"PRAGMA table_info({tableName});";
+
+        using var reader = pragma.ExecuteReader();
+        var columnExists = false;
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
+            {
+                columnExists = true;
+                break;
+            }
+        }
+
+        if (columnExists)
+        {
+            return;
+        }
+
+        using var alter = connection.CreateCommand();
+        alter.CommandText = $"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnDefinition};";
+        alter.ExecuteNonQuery();
     }
 
     private static string Normalize(string? email) => (email ?? string.Empty).Trim().ToLowerInvariant();
