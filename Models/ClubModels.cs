@@ -29,6 +29,13 @@ public class PersonProfile
     public string Bio { get; set; } = string.Empty;
 }
 
+public class TeamPageViewModel
+{
+    public List<PersonProfile> Executives { get; set; } = [];
+    public List<MemberDirectoryItem> Members { get; set; } = [];
+    public List<PersonProfile> Advisors { get; set; } = [];
+}
+
 public class RegisterInput
 {
     public string FullName { get; set; } = string.Empty;

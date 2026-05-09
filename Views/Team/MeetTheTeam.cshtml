@@ -1,25 +1,44 @@
-@model List<PersonProfile>
+@model TeamPageViewModel
 @{
     ViewData["Title"] = "Meet the Team";
 }
 
 <section class="card glass">
     <h1>Meet the Team</h1>
-    <p>Meet the student leaders driving innovation in hardware acceleration.</p>
+    <p>Meet the student leaders and active members driving innovation in hardware acceleration.</p>
 </section>
 
-<section class="profile-grid">
-    @foreach (var person in Model)
-    {
-        <article class="profile-card glass">
-            <img src="@person.ImageUrl" alt="@person.Name" />
-            <h3>@person.Name</h3>
-            <p>@person.Position</p>
-            <p>@person.Department</p>
-            <p class="muted">@person.Bio</p>
-            <a href="mailto:@person.Email">@person.Email</a>
-            <p>@person.Phone</p>
-            <a href="@person.LinkedIn" target="_blank" rel="noreferrer">Profile</a>
-        </article>
-    }
+<section class="card glass">
+    <h2>Executives</h2>
+    <div class="profile-grid">
+        @foreach (var person in Model.Executives)
+        {
+            <article class="profile-card glass">
+                <img src="@person.ImageUrl" alt="@person.Name" />
+                <h3>@person.Name</h3>
+                <p>@person.Position</p>
+                <p>@person.Department</p>
+                <p class="muted">@person.Bio</p>
+                <a href="mailto:@person.Email">@person.Email</a>
+                <p>@person.Phone</p>
+                <a href="@person.LinkedIn" target="_blank" rel="noreferrer">Profile</a>
+            </article>
+        }
+    </div>
+</section>
+
+<section class="card glass">
+    <h2>Members</h2>
+    <div class="profile-grid">
+        @foreach (var member in Model.Members)
+        {
+            <article class="profile-card glass">
+                <img src="@(string.IsNullOrWhiteSpace(member.ImageUrl) ? "/images/club-logo.svg" : member.ImageUrl)" alt="@member.FullName" />
+                <h3>@member.FullName</h3>
+                <p>@member.Department</p>
+                <p class="muted">Student ID: @member.StudentId</p>
+                <a href="mailto:@member.Email">@member.Email</a>
+            </article>
+        }
+    </div>
 </section>
