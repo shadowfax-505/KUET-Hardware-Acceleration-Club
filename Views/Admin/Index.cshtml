@@ -10,7 +10,21 @@
     <div class="alert @(TempData["AdminMessageType"] as string == "error" ? "alert-error" : "alert-success")">@message</div>
 }
 
-<section class="hero glass admin-hero">
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <nav>
+            <a href="#adminDashboard">Dashboard</a>
+            <a href="#broadcast">Broadcast</a>
+            <a href="#people">People</a>
+            <a href="#events">Events</a>
+            <a href="#registrations">Registrations</a>
+            <a href="#contacts">Contacts</a>
+            <a href="#uploads">Uploads</a>
+        </nav>
+    </aside>
+    <div class="admin-main">
+
+    <section id="hero" class="hero glass admin-hero">
     <div>
         <h1>Admin Dashboard</h1>
         <p>Manage broadcasts, monitor live membership data, and keep team profiles current from one place.</p>
@@ -22,7 +36,7 @@
     </div>
 </section>
 
-<section class="stats-grid">
+<section id="stats" class="stats-grid">
     @foreach (var stat in Model.Stats)
     {
         <article class="stat-card">
@@ -94,7 +108,7 @@
     </article>
 </section>
 
-<section class="card glass">
+<section id="people" class="card glass">
     <div class="admin-header-row">
         <div>
             <h2>People Directory</h2>
@@ -139,7 +153,7 @@
     </div>
 </section>
 
-<section class="two-column">
+<section id="events" class="two-column">
     <article class="card glass">
         <div class="admin-header-row">
             <div>
@@ -278,7 +292,7 @@
     </article>
 </section>
 
-<section class="two-column">
+<section id="recentPanels" class="two-column">
     <article class="card glass">
         <div class="admin-header-row">
             <div>
@@ -362,7 +376,7 @@
     </article>
 </section>
 
-<section class="two-column">
+<section id="contacts" class="two-column">
     <article class="card glass">
         <div class="admin-header-row">
             <div>
@@ -413,7 +427,7 @@
     </article>
 </section>
 
-<section class="card glass">
+<section id="uploads" class="card glass">
     <div class="admin-header-row">
         <div>
             <h2>Profile Image Uploads</h2>
@@ -448,3 +462,6 @@
         }
     </div>
 </section>
+
+    </div>
+</div>

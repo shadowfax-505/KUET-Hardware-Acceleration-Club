@@ -1,12 +1,37 @@
 namespace KUETHardwareAccelerationClub.Models;
 
+public class HomeStat
+{
+    public string Value { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string Detail { get; set; } = string.Empty;
+}
+
+public class HomeBrandItem
+{
+    public string Name { get; set; } = string.Empty;
+    public string Tagline { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+}
+
 public class HomeViewModel
 {
     public string ClubName { get; set; } = string.Empty;
+    public string HeroTagline { get; set; } = string.Empty;
     public string IntroText { get; set; } = string.Empty;
     public string Vision { get; set; } = string.Empty;
     public string Mission { get; set; } = string.Empty;
+    public List<HomeStat> Stats { get; set; } = [];
     public List<Achievement> Achievements { get; set; } = [];
+    public List<EventItem> FeaturedEvents { get; set; } = [];
+    public List<HomeBrandItem> Sponsors { get; set; } = [];
+    public List<HomeBrandItem> Partners { get; set; } = [];
+    public string OfficeLocation { get; set; } = string.Empty;
+    public string ContactEmail { get; set; } = string.Empty;
+    public string ContactPhone { get; set; } = string.Empty;
+    public string FacebookUrl { get; set; } = string.Empty;
+    public string LinkedInUrl { get; set; } = string.Empty;
+    public string InstagramUrl { get; set; } = string.Empty;
 }
 
 public class Achievement
@@ -85,6 +110,7 @@ public class EventItem
     public string Name { get; set; } = string.Empty;
     public string DateAndVenue { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string ImageUrl { get; set; } = string.Empty;
 }
 
 public class MemberDirectoryItem

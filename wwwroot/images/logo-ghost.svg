@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0%" stop-color="#4fd1c5" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.25"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="24" fill="none" />
+  <g transform="translate(10,10) scale(0.9)">
+    <path d="M100 10 L170 55 L170 145 L100 190 L30 145 L30 55 Z" fill="url(#g)" opacity="0.18"/>
+    <path d="M100 30 L150 60 L150 140 L100 170 L50 140 L50 60 Z" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="6"/>
+    <text x="100" y="110" font-family="Segoe UI, Roboto, Arial" font-size="52" fill="#ffffff" fill-opacity="0.12" text-anchor="middle" alignment-baseline="middle">HAC</text>
+  </g>
+</svg>

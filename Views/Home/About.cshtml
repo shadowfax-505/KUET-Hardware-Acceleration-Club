@@ -1,26 +1,198 @@
+@model HomeViewModel
 @{
-    ViewData["Title"] = "About";
+    ViewData["Title"] = "Home - Hardware Acceleration Club of KUET";
 }
 
-<section class="card glass">
-    <h1>About the Club</h1>
-    <p>The Hardware Acceleration Club of KUET is a student-led community focused on high-performance systems and real-world accelerator design.</p>
+<!-- Hero Section -->
+<section class="home-hero panel glass" data-reveal>
+    <div class="home-hero-copy">
+        <h1>@Model.ClubName</h1>
+        <p class="home-lead">@Model.HeroTagline</p>
+        <p class="home-intro">@Model.IntroText</p>
+        <div class="hero-actions">
+            <a class="btn-primary" asp-controller="Account" asp-action="Auth">Sign Up / Login</a>
+            <a class="btn-secondary" asp-controller="Events" asp-action="Index">Explore Events</a>
+            <a class="btn-secondary" asp-controller="Projects" asp-action="Index">View Projects</a>
+        </div>
+        <div class="hero-pills">
+            @foreach (var stat in Model.Stats.Take(3))
+            {
+                <div class="hero-pill">
+                    <strong>@stat.Value</strong>
+                    <span>@stat.Label</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="home-hero-visual">
+        <article class="hero-visual-card hero-visual-main">
+            <div>
+                <span class="eyebrow subtle">Hardware. Performance. Innovation.</span>
+                <h2>From FPGA to AI Accelerators</h2>
+                <p>Building next-generation systems through hands-on learning and cutting-edge research.</p>
+            </div>
+        </article>
+
+        <div class="hero-visual-stack">
+            <article class="mini-panel">
+                <span class="mini-label">Vision</span>
+                <p>@Model.Vision</p>
+            </article>
+            <article class="mini-panel">
+                <span class="mini-label">Mission</span>
+                <p>@Model.Mission</p>
+            </article>
+        </div>
+    </div>
 </section>
 
-<section class="two-column">
-    <article class="card glass">
-        <h2>What We Do</h2>
-        <ul class="bullet-list">
-            <li>Project-based learning on FPGA and embedded AI.</li>
-            <li>Hands-on workshops and technical mentorship.</li>
-            <li>Research and competition preparation support.</li>
+<!-- About & Impact Section -->
+<section class="section-grid" data-reveal>
+    <article class="section-card glass">
+        <span class="eyebrow">What We Do</span>
+        <h2>Build Real Hardware Skills</h2>
+        <p>The club connects hardware systems, performance optimization, and industry practices through project-based learning, hands-on workshops, and mentorship.</p>
+    </article>
+
+    <article class="section-card glass">
+        <span class="eyebrow">Club Impact</span>
+        <h2>Achievements That Matter</h2>
+        <ul class="achievement-list achievement-stack">
+            @foreach (var item in Model.Achievements)
+            {
+                <li>
+                    <strong>@item.Year · @item.Title</strong>
+                    <p>@item.Description</p>
+                </li>
+            }
         </ul>
     </article>
-    <article class="card glass">
-        <h2>Who Can Join</h2>
-        <ul class="bullet-list">
-            <li>Any KUET student with interest in hardware/software co-design.</li>
-            <li>Beginners and advanced members are both welcome.</li>
-        </ul>
-    </article>
+</section>
+
+<!-- Stats Section -->
+<section class="panel glass" data-reveal>
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Club at a Glance</span>
+            <h2>Numbers That Show Our Growth</h2>
+        </div>
+        <p class="muted">A quick snapshot of the club's current momentum and where we're heading.</p>
+    </div>
+
+    <div class="stats-grid-home">
+        @foreach (var stat in Model.Stats)
+        {
+            <article class="stat-card-home">
+                <p class="stat-value">@stat.Value</p>
+                <h3>@stat.Label</h3>
+                <p class="muted">@stat.Detail</p>
+            </article>
+        }
+    </div>
+</section>
+
+<!-- Featured Events Section -->
+<section class="panel glass" data-reveal>
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Featured Events</span>
+            <h2>Learn. Build. Compete.</h2>
+        </div>
+        <a class="btn-secondary" asp-controller="Events" asp-action="Index">Browse All Events</a>
+    </div>
+
+    <div class="featured-event-grid">
+        @foreach (var item in Model.FeaturedEvents)
+        {
+            <article class="event-feature-card">
+                <div class="event-media">
+                    <img src="@item.ImageUrl" alt="@item.Name" loading="lazy" />
+                    <span class="chip event-chip">@item.Type</span>
+                </div>
+                <div class="event-copy">
+                    <h3>@item.Name</h3>
+                    <p class="event-meta">@item.DateAndVenue</p>
+                    <p>@item.Description</p>
+                    <div class="hero-actions">
+                        <a class="btn-primary" asp-controller="Events" asp-action="Index">Learn More</a>
+                        <a class="btn-secondary" asp-controller="Contact" asp-action="Index">Ask us</a>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+</section>
+
+<!-- Sponsors Section -->
+<section class="panel glass" data-reveal>
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Proudly Supported By</span>
+            <h2>Our Partners & Sponsors</h2>
+        </div>
+        <p class="muted">Industry leaders who believe in fostering hardware innovation.</p>
+    </div>
+
+    <div class="logo-strip">
+        @foreach (var sponsor in Model.Sponsors)
+        {
+            <a class="logo-card" href="@sponsor.Url" target="_blank" rel="noreferrer">
+                <span class="logo-mark">@string.Concat(sponsor.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(word => word[0]))</span>
+                <span>
+                    <strong>@sponsor.Name</strong>
+                    <small>@sponsor.Tagline</small>
+                </span>
+            </a>
+        }
+    </div>
+</section>
+
+<!-- Partners Section -->
+<section class="panel glass" data-reveal>
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Club Partners</span>
+            <h2>Community & Collaboration</h2>
+        </div>
+    </div>
+
+    <div class="partner-grid">
+        @foreach (var partner in Model.Partners)
+        {
+            <a class="partner-card" href="@partner.Url" target="_blank" rel="noreferrer">
+                <span class="partner-mark">@string.Concat(partner.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(word => word[0]))</span>
+                <span class="partner-copy">
+                    <strong>@partner.Name</strong>
+                    <small>@partner.Tagline</small>
+                </span>
+            </a>
+        }
+    </div>
+</section>
+
+<!-- Newsletter & Contact Section -->
+<section class="panel glass newsletter-band" data-reveal>
+    <div>
+        <span class="eyebrow">Stay Connected</span>
+        <h2>Get Club Updates</h2>
+        <p>Join our newsletter for news on events, projects, workshops, and opportunities.</p>
+        <form asp-controller="Home" asp-action="Subscribe" method="post" class="inline-form newsletter-form">
+            @Html.AntiForgeryToken()
+            <input type="email" name="email" placeholder="Enter your KUET email" required />
+            <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+    </div>
+
+    <aside class="contact-card">
+        <h3>Contact Info</h3>
+        <p>@Model.OfficeLocation</p>
+        <p><a href="mailto:@Model.ContactEmail">@Model.ContactEmail</a></p>
+        <p><a href="tel:@Model.ContactPhone">@Model.ContactPhone</a></p>
+        <div class="social-links">
+            <a href="@Model.FacebookUrl" target="_blank" rel="noreferrer">Facebook</a>
+            <a href="@Model.LinkedInUrl" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href="@Model.InstagramUrl" target="_blank" rel="noreferrer">Instagram</a>
+        </div>
+    </aside>
 </section>

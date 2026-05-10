@@ -14,7 +14,7 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public IActionResult About() => View();
+    public IActionResult About() => RedirectToAction(nameof(Index));
 
     [HttpPost]
     [ValidateAntiForgeryToken]

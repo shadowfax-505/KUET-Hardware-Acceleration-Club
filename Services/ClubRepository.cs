@@ -15,15 +15,48 @@ public static class ClubRepository
     public static HomeViewModel GetHomeContent() => new()
     {
         ClubName = "Hardware Acceleration Club of KUET",
+        HeroTagline = "From Idea to Silicon – Building Tomorrow's Accelerators",
         IntroText = "We empower students to build high-performance systems using FPGA, GPU, and domain-specific architectures.",
         Vision = "To become Bangladesh's leading student platform for hardware acceleration research and innovation.",
         Mission = "Build practical skills, foster research culture, and launch impactful acceleration projects solving real-world challenges.",
+        Stats =
+        [
+            new HomeStat { Value = "50+", Label = "Active Members", Detail = "Students passionate about hardware systems" },
+            new HomeStat { Value = "15+", Label = "Projects Running", Detail = "From FPGA to AI accelerators" },
+            new HomeStat { Value = "8+", Label = "Events & Workshops", Detail = "Hands-on learning every semester" }
+        ],
         Achievements =
         [
             new Achievement { Year = "2024", Title = "National Embedded Contest - Champion", Description = "Secured first place with energy-efficient inference hardware." },
             new Achievement { Year = "2025", Title = "Open Hardware Showcase - Best Innovation", Description = "Recognized for custom RISC-V acceleration extension." },
             new Achievement { Year = "2025", Title = "Inter-University Hackfest - Top 3", Description = "Developed low-latency traffic analytics accelerator." }
-        ]
+        ],
+        FeaturedEvents =
+        [
+            new EventItem { Id = 1, Type = "Workshop", Name = "FPGA Design Bootcamp", DateAndVenue = "March 15, 2026 · KUET", Description = "Hands-on workshop covering Xilinx Vivado and RTL design fundamentals.", ImageUrl = "https://placehold.co/400x300?text=FPGA+Bootcamp" },
+            new EventItem { Id = 2, Type = "Seminar", Name = "GPU Computing Deep Dive", DateAndVenue = "April 10, 2026 · KUET", Description = "Explore CUDA programming and performance optimization techniques.", ImageUrl = "https://placehold.co/400x300?text=GPU+Computing" },
+            new EventItem { Id = 3, Type = "Competition", Name = "Hardware Design Challenge", DateAndVenue = "May 1, 2026 · Virtual", Description = "Design and optimize a specialized accelerator for a given workload.", ImageUrl = "https://placehold.co/400x300?text=Design+Challenge" }
+        ],
+        Sponsors =
+        [
+            new HomeBrandItem { Name = "Xilinx", Tagline = "FPGA Leader", Url = "https://xilinx.com" },
+            new HomeBrandItem { Name = "NVIDIA", Tagline = "GPU Innovation", Url = "https://nvidia.com" },
+            new HomeBrandItem { Name = "Intel", Tagline = "Computing Power", Url = "https://intel.com" },
+            new HomeBrandItem { Name = "Cadence", Tagline = "Design Tools", Url = "https://cadence.com" },
+            new HomeBrandItem { Name = "Synopsys", Tagline = "Chip Design", Url = "https://synopsys.com" }
+        ],
+        Partners =
+        [
+            new HomeBrandItem { Name = "BUET Robotics Club", Tagline = "Engineering Excellence", Url = "https://buet.ac.bd" },
+            new HomeBrandItem { Name = "CUET Tech Club", Tagline = "Innovation Hub", Url = "https://cuet.ac.bd" },
+            new HomeBrandItem { Name = "MIST Engineering Society", Tagline = "Tech Community", Url = "https://mist.ac.bd" }
+        ],
+        OfficeLocation = "SWC-302, Students' Welfare Center, KUET, Khulna, Bangladesh",
+        ContactEmail = "hackhardware@kuet.ac.bd",
+        ContactPhone = "+880 1822 076 765",
+        FacebookUrl = "https://facebook.com/HAC.KUET",
+        LinkedInUrl = "https://linkedin.com/company/hardware-acceleration-club-kuet",
+        InstagramUrl = "https://instagram.com/hac.kuet"
     };
 
     public static List<PersonProfile> GetExecutives()
