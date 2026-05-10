@@ -26,6 +26,28 @@ public class AdminController : Controller
         return View(model);
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult ApproveSubmission(int submissionId)
+    {
+        var admin = User.Identity?.Name ?? string.Empty;
+        var result = ClubRepository.ApproveProjectSubmission(submissionId, admin);
+        TempData["AdminMessage"] = result.message;
+        TempData["AdminMessageType"] = result.success ? "success" : "error";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult RejectSubmission(int submissionId, string note)
+    {
+        var admin = User.Identity?.Name ?? string.Empty;
+        var result = ClubRepository.RejectProjectSubmission(submissionId, admin, note ?? string.Empty);
+        TempData["AdminMessage"] = result.message;
+        TempData["AdminMessageType"] = result.success ? "success" : "error";
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpGet]
     public async Task<IActionResult> DashboardSnapshot()
     {

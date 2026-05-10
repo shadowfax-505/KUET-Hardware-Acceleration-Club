@@ -3,41 +3,99 @@
     ViewData["Title"] = "Meet the Team";
 }
 
-<section class="card glass">
-    <h1>Meet the Team</h1>
-    <p>Meet the student leaders and active members driving innovation in hardware acceleration.</p>
+<section class="home-hero panel glass team-hero" data-reveal>
+    <div class="home-hero-copy">
+        <span class="eyebrow">People & Leadership</span>
+        <h1>Meet the Team</h1>
+        <p class="home-lead">Student leaders driving hardware acceleration at KUET</p>
+        <p class="home-intro">From executive leadership to the broader member network, this is the team turning ideas into real systems, workshops, and projects.</p>
+    </div>
+
+    <div class="home-hero-visual team-hero-visual">
+        <article class="hero-visual-card hero-visual-main">
+            <div>
+                <span class="eyebrow subtle">Leadership at a glance</span>
+                <h2>@Model.Executives.Count Executives</h2>
+                <p>Working with @Model.Members.Count members to design, build, and launch club activities.</p>
+            </div>
+        </article>
+
+        <div class="hero-visual-stack">
+            <article class="mini-panel">
+                <span class="mini-label">Executives</span>
+                <p>Planning, events, and technical direction.</p>
+            </article>
+            <article class="mini-panel">
+                <span class="mini-label">Members</span>
+                <p>Project contributors, volunteers, and workshop participants.</p>
+            </article>
+        </div>
+    </div>
 </section>
 
-<section class="card glass">
-    <h2>Executives</h2>
+<section class="section-grid team-intro-grid" data-reveal>
+    <article class="section-card glass">
+        <span class="eyebrow">Executive Board</span>
+        <h2>Leadership with Technical Direction</h2>
+        <p>Our executive team coordinates the club’s roadmap, mentors projects, and keeps workshops aligned with the work students want to build next.</p>
+    </article>
+
+    <article class="section-card glass">
+        <span class="eyebrow">Member Community</span>
+        <h2>Builders Behind the Scenes</h2>
+        <p>Members form the core of our activity: project development, event support, community outreach, and hands-on learning sessions.</p>
+    </article>
+</section>
+
+<section class="panel glass team-section" data-reveal>
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Executives</span>
+            <h2>Club Leadership</h2>
+        </div>
+        <p class="muted">The people shaping events, partnerships, and the club’s technical direction.</p>
+    </div>
+
     <div class="profile-grid">
         @foreach (var person in Model.Executives)
         {
             <article class="profile-card glass">
                 <img src="@person.ImageUrl" alt="@person.Name" />
-                <h3>@person.Name</h3>
-                <p>@person.Position</p>
-                <p>@person.Department</p>
-                <p class="muted">@person.Bio</p>
-                <a href="mailto:@person.Email">@person.Email</a>
-                <p>@person.Phone</p>
-                <a href="@person.LinkedIn" target="_blank" rel="noreferrer">Profile</a>
+                <div class="profile-card-copy">
+                    <span class="chip">@person.Position</span>
+                    <h3>@person.Name</h3>
+                    <p class="profile-dept">@person.Department</p>
+                    <p class="muted">@person.Bio</p>
+                    <a href="mailto:@person.Email">@person.Email</a>
+                    <span class="profile-meta">@person.Phone</span>
+                    <a href="@person.LinkedIn" target="_blank" rel="noreferrer">Profile</a>
+                </div>
             </article>
         }
     </div>
 </section>
 
-<section class="card glass">
-    <h2>Members</h2>
+<section class="panel glass team-section" data-reveal>
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Members</span>
+            <h2>Active Member Network</h2>
+        </div>
+        <p class="muted">Students contributing to projects, events, and the broader hardware community.</p>
+    </div>
+
     <div class="profile-grid">
         @foreach (var member in Model.Members)
         {
             <article class="profile-card glass">
                 <img src="@(string.IsNullOrWhiteSpace(member.ImageUrl) ? "/images/club-logo.svg" : member.ImageUrl)" alt="@member.FullName" />
-                <h3>@member.FullName</h3>
-                <p>@member.Department</p>
-                <p class="muted">Student ID: @member.StudentId</p>
-                <a href="mailto:@member.Email">@member.Email</a>
+                <div class="profile-card-copy">
+                    <span class="chip">Member</span>
+                    <h3>@member.FullName</h3>
+                    <p class="profile-dept">@member.Department</p>
+                    <p class="muted">Student ID: @member.StudentId</p>
+                    <a href="mailto:@member.Email">@member.Email</a>
+                </div>
             </article>
         }
     </div>

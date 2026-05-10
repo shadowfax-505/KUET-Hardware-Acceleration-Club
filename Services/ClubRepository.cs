@@ -192,6 +192,12 @@ public static class ClubRepository
             }
         }
 
+        // attach image URLs for each project
+        foreach (var proj in projects)
+        {
+            proj.ImageUrls = GetProjectImages(connection, proj.Id);
+        }
+
         return new ProjectsPageViewModel
         {
             Projects = projects,
@@ -612,8 +618,191 @@ public static class ClubRepository
         dashboard.RecentComments = GetRecentComments(connection);
         dashboard.RecentContacts = GetRecentContacts(connection);
         dashboard.RecentRegistrations = GetRecentRegistrations(connection);
+        dashboard.PendingProjectSubmissions = GetPendingProjectSubmissions(connection);
 
         return dashboard;
+    }
+
+    private static List<ProjectSubmission> GetPendingProjectSubmissions(SqliteConnection connection)
+    {
+        var items = new List<ProjectSubmission>();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT Id, Title, Summary, Lead, Stack, SubmittedBy, SubmittedAtUtc, Status, DecisionBy, DecisionAtUtc, DecisionNote
+            FROM ProjectSubmissions
+            WHERE Status = 'Pending'
+            ORDER BY SubmittedAtUtc DESC;";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var sub = new ProjectSubmission
+            {
+                Id = reader.GetInt32(0),
+                Title = reader.GetString(1),
+                Summary = reader.GetString(2),
+                Lead = reader.GetString(3),
+                Stack = reader.GetString(4),
+                SubmittedBy = reader.GetString(5),
+                SubmittedAtUtc = DateTime.Parse(reader.GetString(6)),
+                Status = reader.GetString(7),
+                DecisionBy = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                DecisionAtUtc = reader.IsDBNull(9) ? null : DateTime.Parse(reader.GetString(9)),
+                DecisionNote = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+                ImageUrls = []
+            };
+
+            // load images
+            using var imgCmd = connection.CreateCommand();
+            imgCmd.CommandText = "SELECT ImageUrl FROM ProjectSubmissionImages WHERE SubmissionId = $id;";
+            imgCmd.Parameters.AddWithValue("$id", sub.Id);
+            using var imgReader = imgCmd.ExecuteReader();
+            while (imgReader.Read())
+            {
+                sub.ImageUrls.Add(imgReader.GetString(0));
+            }
+
+            items.Add(sub);
+        }
+
+        return items;
+    }
+
+    public static (bool success, string message, int submissionId) CreateProjectSubmission(string title, string summary, string lead, string stack, string submittedBy)
+    {
+        EnsureInitialized();
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(summary) || string.IsNullOrWhiteSpace(lead))
+        {
+            return (false, "Please provide title, summary and lead.", 0);
+        }
+
+        using var connection = OpenConnection();
+        using var trans = connection.BeginTransaction();
+        using var cmd = connection.CreateCommand();
+        cmd.Transaction = trans;
+        cmd.CommandText = @"
+            INSERT INTO ProjectSubmissions (Title, Summary, Lead, Stack, SubmittedBy, SubmittedAtUtc)
+            VALUES ($title, $summary, $lead, $stack, $submittedBy, $submittedAtUtc);";
+        cmd.Parameters.AddWithValue("$title", title.Trim());
+        cmd.Parameters.AddWithValue("$summary", summary.Trim());
+        cmd.Parameters.AddWithValue("$lead", lead.Trim());
+        cmd.Parameters.AddWithValue("$stack", stack?.Trim() ?? string.Empty);
+        cmd.Parameters.AddWithValue("$submittedBy", Normalize(submittedBy));
+        cmd.Parameters.AddWithValue("$submittedAtUtc", DateTime.UtcNow.ToString("O"));
+        cmd.ExecuteNonQuery();
+
+        using var idCmd = connection.CreateCommand();
+        idCmd.Transaction = trans;
+        idCmd.CommandText = "SELECT last_insert_rowid();";
+        var id = Convert.ToInt32(idCmd.ExecuteScalar());
+        trans.Commit();
+        return (true, "Submission received.", id);
+    }
+
+    public static bool AddProjectSubmissionImage(int submissionId, string imageUrl)
+    {
+        EnsureInitialized();
+        if (submissionId <= 0 || string.IsNullOrWhiteSpace(imageUrl)) return false;
+        using var connection = OpenConnection();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "INSERT INTO ProjectSubmissionImages (SubmissionId, ImageUrl) VALUES ($submissionId, $imageUrl);";
+        cmd.Parameters.AddWithValue("$submissionId", submissionId);
+        cmd.Parameters.AddWithValue("$imageUrl", imageUrl);
+        return cmd.ExecuteNonQuery() > 0;
+    }
+
+    public static (bool success, string message) ApproveProjectSubmission(int submissionId, string adminEmail)
+    {
+        EnsureInitialized();
+        using var connection = OpenConnection();
+        using var trans = connection.BeginTransaction();
+
+        // fetch submission
+        using var sel = connection.CreateCommand();
+        sel.Transaction = trans;
+        sel.CommandText = "SELECT Title, Summary, Lead, Stack FROM ProjectSubmissions WHERE Id = $id AND Status = 'Pending';";
+        sel.Parameters.AddWithValue("$id", submissionId);
+        using var reader = sel.ExecuteReader();
+        if (!reader.Read())
+        {
+            return (false, "Submission not found or already processed.");
+        }
+
+        var title = reader.GetString(0);
+        var summary = reader.GetString(1);
+        var lead = reader.GetString(2);
+        var stack = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+        reader.Close();
+
+        using var insertProject = connection.CreateCommand();
+        insertProject.Transaction = trans;
+        insertProject.CommandText = @"INSERT INTO Projects (Title, Summary, Lead, Stack) VALUES ($title, $summary, $lead, $stack);";
+        insertProject.Parameters.AddWithValue("$title", title);
+        insertProject.Parameters.AddWithValue("$summary", summary);
+        insertProject.Parameters.AddWithValue("$lead", lead);
+        insertProject.Parameters.AddWithValue("$stack", stack);
+        insertProject.ExecuteNonQuery();
+
+        using var idCmd = connection.CreateCommand();
+        idCmd.Transaction = trans;
+        idCmd.CommandText = "SELECT last_insert_rowid();";
+        var projectId = Convert.ToInt32(idCmd.ExecuteScalar());
+
+        // move images
+        using var imgSel = connection.CreateCommand();
+        imgSel.Transaction = trans;
+        imgSel.CommandText = "SELECT ImageUrl FROM ProjectSubmissionImages WHERE SubmissionId = $id;";
+        imgSel.Parameters.AddWithValue("$id", submissionId);
+        using var imgReader = imgSel.ExecuteReader();
+        var imageUrls = new List<string>();
+        while (imgReader.Read()) imageUrls.Add(imgReader.GetString(0));
+        imgReader.Close();
+
+        foreach (var url in imageUrls)
+        {
+            using var insertImg = connection.CreateCommand();
+            insertImg.Transaction = trans;
+            insertImg.CommandText = "INSERT INTO ProjectImages (ProjectId, ImageUrl) VALUES ($projectId, $imageUrl);";
+            insertImg.Parameters.AddWithValue("$projectId", projectId);
+            insertImg.Parameters.AddWithValue("$imageUrl", url);
+            insertImg.ExecuteNonQuery();
+        }
+
+        using var upd = connection.CreateCommand();
+        upd.Transaction = trans;
+        upd.CommandText = @"UPDATE ProjectSubmissions SET Status = 'Approved', DecisionBy = $admin, DecisionAtUtc = $when WHERE Id = $id;";
+        upd.Parameters.AddWithValue("$admin", Normalize(adminEmail));
+        upd.Parameters.AddWithValue("$when", DateTime.UtcNow.ToString("O"));
+        upd.Parameters.AddWithValue("$id", submissionId);
+        upd.ExecuteNonQuery();
+
+        trans.Commit();
+        return (true, "Submission approved and published.");
+    }
+
+    public static (bool success, string message) RejectProjectSubmission(int submissionId, string adminEmail, string note)
+    {
+        EnsureInitialized();
+        using var connection = OpenConnection();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"UPDATE ProjectSubmissions SET Status = 'Rejected', DecisionBy = $admin, DecisionAtUtc = $when, DecisionNote = $note WHERE Id = $id AND Status = 'Pending';";
+        cmd.Parameters.AddWithValue("$admin", Normalize(adminEmail));
+        cmd.Parameters.AddWithValue("$when", DateTime.UtcNow.ToString("O"));
+        cmd.Parameters.AddWithValue("$note", note ?? string.Empty);
+        cmd.Parameters.AddWithValue("$id", submissionId);
+        var affected = cmd.ExecuteNonQuery();
+        return affected > 0 ? (true, "Submission rejected.") : (false, "Submission not found or already processed.");
+    }
+
+    private static List<string> GetProjectImages(SqliteConnection connection, int projectId)
+    {
+        var urls = new List<string>();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "SELECT ImageUrl FROM ProjectImages WHERE ProjectId = $id;";
+        cmd.Parameters.AddWithValue("$id", projectId);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read()) urls.Add(reader.GetString(0));
+        return urls;
     }
 
     public static List<PersonProfile> ApplyProfileImageOverrides(string roleKey, List<PersonProfile> profiles)
@@ -1067,6 +1256,38 @@ public static class ClubRepository
                     UpdatedAtUtc TEXT NOT NULL
                 );";
             command.ExecuteNonQuery();
+
+            using var addSubmissionTables = connection.CreateCommand();
+            addSubmissionTables.CommandText = @"
+                CREATE TABLE IF NOT EXISTS ProjectSubmissions (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Title TEXT NOT NULL,
+                    Summary TEXT NOT NULL,
+                    Lead TEXT NOT NULL,
+                    Stack TEXT NOT NULL,
+                    SubmittedBy TEXT NOT NULL,
+                    SubmittedAtUtc TEXT NOT NULL,
+                    Status TEXT NOT NULL DEFAULT 'Pending',
+                    DecisionBy TEXT,
+                    DecisionAtUtc TEXT,
+                    DecisionNote TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS ProjectSubmissionImages (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    SubmissionId INTEGER NOT NULL,
+                    ImageUrl TEXT NOT NULL,
+                    FOREIGN KEY (SubmissionId) REFERENCES ProjectSubmissions(Id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS ProjectImages (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ProjectId INTEGER NOT NULL,
+                    ImageUrl TEXT NOT NULL,
+                    FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE
+                );
+            ";
+            addSubmissionTables.ExecuteNonQuery();
 
             EnsureColumnExists(connection, "Members", "ImageUrl", "TEXT");
             EnsureColumnExists(connection, "Members", "GitHubProfile", "TEXT");

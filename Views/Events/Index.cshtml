@@ -8,32 +8,72 @@
     <div class="alert @(TempData["EventMessageType"] as string == "error" ? "alert-error" : "alert-success")">@msg</div>
 }
 
-<section class="card glass">
-    <h1>Upcoming Events</h1>
-    <p>Workshops, competitions, and mentoring sessions for accelerator enthusiasts.</p>
+<section class="home-hero panel glass" data-reveal>
+    <div class="home-hero-copy">
+        <span class="eyebrow">Workshops & Gatherings</span>
+        <h1>Upcoming Events</h1>
+        <p class="home-lead">Workshops, competitions, and mentoring sessions</p>
+        <p class="home-intro">Stay close to the club’s live learning rhythm with hands-on sessions, talks, and team-driven events built for accelerator enthusiasts.</p>
+    </div>
+
+    <div class="home-hero-visual">
+        <article class="hero-visual-card hero-visual-main">
+            <div>
+                <span class="eyebrow subtle">Club schedule</span>
+                <h2>@Model.Events.Count Upcoming Sessions</h2>
+                <p>Register, show up, and build with us across workshops, hackathons, and talks.</p>
+            </div>
+        </article>
+
+        <div class="hero-visual-stack">
+            <article class="mini-panel">
+                <span class="mini-label">Hands-on</span>
+                <p>Practical sessions centered on real hardware workflows.</p>
+            </article>
+            <article class="mini-panel">
+                <span class="mini-label">Community</span>
+                <p>Meet members, mentors, and collaborators in person.</p>
+            </article>
+        </div>
+    </div>
 </section>
 
-<section class="event-grid">
+<section class="panel glass" data-reveal>
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Event Calendar</span>
+            <h2>Register for Live Sessions</h2>
+        </div>
+        <p class="muted">Browse the lineup and register for the sessions that fit your schedule.</p>
+    </div>
+
+    <div class="event-grid">
     @foreach (var ev in Model.Events)
     {
         var isRegistered = Model.RegisteredEventIds.Contains(ev.Id);
-        <article class="card glass">
-            <span class="chip">@ev.Type</span>
-            <h2>@ev.Name</h2>
-            <p>@ev.DateAndVenue</p>
-            <p>@ev.Description</p>
-            <form asp-controller="Events" asp-action="Register" method="post">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="eventId" value="@ev.Id" />
-                @if (isRegistered)
-                {
-                    <button type="button" class="btn-secondary" disabled>Registered</button>
-                }
-                else
-                {
-                    <button type="submit" class="btn-primary">Register</button>
-                }
-            </form>
+        <article class="event-card glass">
+            <div class="event-media event-media--compact">
+                <img src="@(string.IsNullOrWhiteSpace(ev.ImageUrl) ? "/images/events/event-generic.svg" : ev.ImageUrl)" alt="@ev.Name" loading="lazy" />
+                <span class="chip event-chip">@ev.Type</span>
+            </div>
+            <div class="event-copy">
+                <h2>@ev.Name</h2>
+                <p class="event-meta">@ev.DateAndVenue</p>
+                <p>@ev.Description</p>
+                <form asp-controller="Events" asp-action="Register" method="post" class="event-action-row">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="eventId" value="@ev.Id" />
+                    @if (isRegistered)
+                    {
+                        <button type="button" class="btn-secondary" disabled>Registered</button>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn-primary">Register</button>
+                    }
+                </form>
+            </div>
         </article>
     }
+    </div>
 </section>

@@ -8,20 +8,69 @@
     <div class="alert @(TempData["ProjectMessageType"] as string == "error" ? "alert-error" : "alert-success")">@msg</div>
 }
 
-<section class="card glass">
-    <h1>Member Projects Showcase</h1>
-    <p>Explore innovative hardware acceleration projects and collaborate through comments.</p>
+<section class="home-hero panel glass" data-reveal>
+    <div class="home-hero-copy">
+        <span class="eyebrow">Projects & Prototypes</span>
+        <h1>Member Projects Showcase</h1>
+        <p class="home-lead">Explore hardware acceleration builds and collaboration</p>
+        <p class="home-intro">From early ideas to published club projects, this page highlights the work members are turning into real systems, benchmarks, and demos.</p>
+    </div>
+
+    <div class="home-hero-visual">
+        <article class="hero-visual-card hero-visual-main">
+            <div>
+                <span class="eyebrow subtle">What you’ll find</span>
+                <h2>@Model.Projects.Count Published Projects</h2>
+                <p>See project summaries, comments, media, and the submission form below the showcase.</p>
+            </div>
+        </article>
+
+        <div class="hero-visual-stack">
+            <article class="mini-panel">
+                <span class="mini-label">Showcase</span>
+                <p>Published work from members and club teams.</p>
+            </article>
+            <article class="mini-panel">
+                <span class="mini-label">Review flow</span>
+                <p>New member submissions are approved before appearing here.</p>
+            </article>
+        </div>
+    </div>
 </section>
+
+<section class="panel glass" data-reveal>
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Published Work</span>
+            <h2>Current Projects</h2>
+        </div>
+        <p class="muted">A snapshot of the club’s live projects, discussions, and visual proof of progress.</p>
+    </div>
 
 @foreach (var project in Model.Projects)
 {
-    <section class="card glass">
-        <h2>@project.Title</h2>
-        <p>@project.Summary</p>
-        <p><strong>Lead:</strong> @project.Lead</p>
-        <p><strong>Tech Stack:</strong> @project.Stack</p>
+    <article class="project-card glass">
+        <div class="project-copy">
+            <div class="project-title-row">
+                <span class="chip">Project</span>
+                <h2>@project.Title</h2>
+            </div>
+            <p class="project-summary">@project.Summary</p>
+            <p class="project-meta"><strong>Lead:</strong> @project.Lead</p>
+            <p class="project-meta"><strong>Tech Stack:</strong> @project.Stack</p>
+        </div>
 
-        <div class="comments">
+        @if (project.ImageUrls != null && project.ImageUrls.Any())
+        {
+            <div class="project-images">
+                @foreach (var img in project.ImageUrls)
+                {
+                    <img src="@img" alt="project image" loading="lazy" />
+                }
+            </div>
+        }
+
+        <div class="comments project-comments">
             <h3>Comments</h3>
             @if (!project.Comments.Any())
             {
@@ -55,7 +104,7 @@
 
         @if (!string.IsNullOrWhiteSpace(Model.CurrentUserEmail))
         {
-            <form asp-controller="Projects" asp-action="AddComment" method="post">
+            <form asp-controller="Projects" asp-action="AddComment" method="post" class="project-comment-form">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="projectId" value="@project.Id" />
                 <label>Add Comment</label>
@@ -67,5 +116,33 @@
         {
             <p><a asp-controller="Account" asp-action="Auth">Login as member</a> to comment and report.</p>
         }
+    </article>
+}
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.CurrentUserEmail) && Model.CurrentUserEmail != "")
+{
+    <section class="panel glass submit-project-panel" data-reveal>
+        <h2>Submit Your Project</h2>
+        <p>Members can submit projects for admin approval. Add photos to showcase your work.</p>
+        <form asp-controller="Projects" asp-action="SubmitProject" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <label>Title</label>
+            <input type="text" name="Title" required />
+
+            <label>Summary</label>
+            <textarea name="Summary" rows="4" required></textarea>
+
+            <label>Your Name (Lead)</label>
+            <input type="text" name="Lead" value="@Model.CurrentUserEmail" required />
+
+            <label>Tech Stack</label>
+            <input type="text" name="Stack" placeholder="e.g. Verilog, Python, Vivado" />
+
+            <label>Photos (optional)</label>
+            <input type="file" name="Photos" accept="image/*" multiple />
+
+            <button type="submit" class="btn-primary">Submit for Review</button>
+        </form>
     </section>
 }

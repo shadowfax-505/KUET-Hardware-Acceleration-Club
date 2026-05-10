@@ -7,11 +7,46 @@
     <div class="alert @(TempData["ContactMessageType"] as string == "error" ? "alert-error" : "alert-success")">@msg</div>
 }
 
-<section class="two-column">
-    <article class="card glass">
+<section class="home-hero panel glass contact-hero" data-reveal>
+    <div class="home-hero-copy">
+        <span class="eyebrow">Contact & Collaboration</span>
         <h1>Contact Us</h1>
-        <p>Have a collaboration idea, mentorship request, or event proposal?</p>
-        <form asp-controller="Contact" asp-action="Submit" method="post">
+        <p class="home-lead">Have a collaboration idea, mentorship request, or event proposal?</p>
+        <p class="home-intro">Reach out to the club for partnerships, workshops, membership questions, or project collaboration. We read every message and route it to the right team.</p>
+        <div class="hero-actions">
+            <a class="btn-primary" href="mailto:info@hack.kuet.ac.bd">Email the Club</a>
+            <a class="btn-secondary" href="#contactForm">Send a Message</a>
+        </div>
+    </div>
+
+    <div class="home-hero-visual">
+        <article class="hero-visual-card hero-visual-main">
+            <div>
+                <span class="eyebrow subtle">Office</span>
+                <h2>KUET Campus, Khulna</h2>
+                <p>Sun-Thu, 2:00 PM - 6:00 PM</p>
+            </div>
+        </article>
+
+        <div class="hero-visual-stack">
+            <article class="mini-panel">
+                <span class="mini-label">Email</span>
+                <p><a href="mailto:info@hack.kuet.ac.bd">info@hack.kuet.ac.bd</a></p>
+            </article>
+            <article class="mini-panel">
+                <span class="mini-label">Phone</span>
+                <p>+8801XXXXXXXXX</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section-grid contact-grid" data-reveal>
+    <article class="section-card glass" id="contactForm">
+        <span class="eyebrow">Message Us</span>
+        <h2>Send a Direct Note</h2>
+        <p>Use this form for membership questions, workshop ideas, sponsorship requests, and collaboration proposals.</p>
+        <form asp-controller="Contact" asp-action="Submit" method="post" class="contact-form">
             @Html.AntiForgeryToken()
             <label>Name</label>
             <input type="text" name="Name" required />
@@ -36,11 +71,17 @@
         </form>
     </article>
 
-    <article class="card glass">
-        <h2>Club Office</h2>
+    <article class="section-card glass contact-office-card">
+        <span class="eyebrow">Club Office</span>
+        <h2>Visit or Reach Out</h2>
         <p><strong>Location:</strong> KUET Campus, Khulna</p>
         <p><strong>Email:</strong> <a href="mailto:info@hack.kuet.ac.bd">info@hack.kuet.ac.bd</a></p>
         <p><strong>Phone:</strong> +8801XXXXXXXXX</p>
         <p><strong>Office Hours:</strong> Sun-Thu, 2:00 PM - 6:00 PM</p>
+        <div class="social-links contact-social-links">
+            <a href="https://facebook.com/HAC.KUET" target="_blank" rel="noreferrer">Facebook</a>
+            <a href="https://linkedin.com/company/hardware-acceleration-club-kuet" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href="https://instagram.com/hac.kuet" target="_blank" rel="noreferrer">Instagram</a>
+        </div>
     </article>
 </section>

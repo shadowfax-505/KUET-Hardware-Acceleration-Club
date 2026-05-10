@@ -17,6 +17,7 @@
             <a href="#broadcast">Broadcast</a>
             <a href="#people">People</a>
             <a href="#events">Events</a>
+            <a href="#pendingSubmissions">Submissions</a>
             <a href="#registrations">Registrations</a>
             <a href="#contacts">Contacts</a>
             <a href="#uploads">Uploads</a>
@@ -24,31 +25,48 @@
     </aside>
     <div class="admin-main">
 
-    <section id="hero" class="hero glass admin-hero">
-    <div>
+    <section id="hero" class="home-hero panel glass admin-hero" data-reveal>
+    <div class="home-hero-copy">
+        <span class="eyebrow">Operations & Moderation</span>
         <h1>Admin Dashboard</h1>
-        <p>Manage broadcasts, monitor live membership data, and keep team profiles current from one place.</p>
+        <p class="home-lead">Manage broadcasts, live membership data, and team profiles from one place</p>
+        <p class="home-intro">The dashboard keeps the club’s outreach, project approvals, and member records in sync so the team can act quickly and keep the site current.</p>
     </div>
-    <div class="hero-badges">
-        <span class="chip">Live roster</span>
-        <span class="chip">Email broadcast</span>
-        <span class="chip">Image manager</span>
+    <div class="home-hero-visual">
+        <article class="hero-visual-card hero-visual-main">
+            <div>
+                <span class="eyebrow subtle">Live tools</span>
+                <h2>Roster, Broadcasts, Projects</h2>
+                <p>Monitor members, queue announcements, and approve submissions without leaving the dashboard.</p>
+            </div>
+        </article>
+
+        <div class="hero-visual-stack">
+            <article class="mini-panel">
+                <span class="mini-label">Moderation</span>
+                <p>Approve or reject pending project submissions.</p>
+            </article>
+            <article class="mini-panel">
+                <span class="mini-label">Updates</span>
+                <p>Keep events, contacts, and uploads in one place.</p>
+            </article>
+        </div>
     </div>
 </section>
 
-<section id="stats" class="stats-grid">
+<section id="stats" class="stats-grid-home admin-stats-grid" data-reveal>
     @foreach (var stat in Model.Stats)
     {
-        <article class="stat-card">
-            <h3>@stat.Value</h3>
-            <p>@stat.Label</p>
-            <small class="muted">@stat.Subtext</small>
+        <article class="stat-card-home">
+            <p class="stat-value">@stat.Value</p>
+            <h3>@stat.Label</h3>
+            <p class="muted">@stat.Subtext</p>
         </article>
     }
 </section>
 
 <section class="dashboard-grid" id="adminDashboard">
-    <article class="card glass chart-card">
+    <article class="section-card glass chart-card">
         <div class="admin-header-row">
             <div>
                 <h2>Live Members & Admins</h2>
@@ -64,7 +82,7 @@
         </div>
     </article>
 
-    <article class="card glass">
+    <article class="section-card glass">
         <div class="admin-header-row">
             <div>
                 <h2>Broadcast Email</h2>
@@ -106,9 +124,60 @@
             <button type="submit" class="btn-primary">Queue Email</button>
         </form>
     </article>
+
+    <article class="section-card glass" id="pendingSubmissions">
+        <div class="admin-header-row">
+            <div>
+                <h2>Pending Project Submissions</h2>
+                <p class="muted">Review member-submitted projects and approve to publish.</p>
+            </div>
+        </div>
+
+        @if (!Model.PendingProjectSubmissions.Any())
+        {
+            <p class="muted">No pending project submissions.</p>
+        }
+        else
+        {
+            <div class="admin-list">
+                @foreach (var sub in Model.PendingProjectSubmissions)
+                {
+                    <article class="admin-item">
+                        <strong>@sub.Title</strong>
+                        <p>@sub.Summary</p>
+                        <small>Submitted by @sub.SubmittedBy · @sub.SubmittedAtUtc.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</small>
+                        @if (sub.ImageUrls.Any())
+                        {
+                            <div class="submission-images">
+                                @foreach (var img in sub.ImageUrls)
+                                {
+                                    <img src="@img" alt="project photo" style="max-width:120px; margin-right:8px;" />
+                                }
+                            </div>
+                        }
+
+                        <div class="admin-actions-row">
+                            <form asp-controller="Admin" asp-action="ApproveSubmission" method="post" class="inline-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="submissionId" value="@sub.Id" />
+                                <button type="submit" class="btn-primary">Approve & Publish</button>
+                            </form>
+
+                            <form asp-controller="Admin" asp-action="RejectSubmission" method="post" class="inline-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="submissionId" value="@sub.Id" />
+                                <input type="text" name="note" placeholder="Optional note" />
+                                <button type="submit" class="btn-secondary">Reject</button>
+                            </form>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </article>
 </section>
 
-<section id="people" class="card glass">
+<section id="people" class="section-card glass" data-reveal>
     <div class="admin-header-row">
         <div>
             <h2>People Directory</h2>
@@ -153,8 +222,8 @@
     </div>
 </section>
 
-<section id="events" class="two-column">
-    <article class="card glass">
+<section id="events" class="two-column admin-two-column" data-reveal>
+    <article class="section-card glass">
         <div class="admin-header-row">
             <div>
                 <h2>Manage Events</h2>
@@ -222,10 +291,10 @@
         }
     </article>
 
-    <article class="card glass">
+          <article class="section-card glass">
         <div class="admin-header-row">
             <div>
-                <h2>Event Registrations by Event</h2>
+                <h2>Event Registrations</h2>
                 <p class="muted">See exactly which members registered for each event.</p>
             </div>
         </div>

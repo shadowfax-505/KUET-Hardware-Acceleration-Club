@@ -30,10 +30,23 @@
             {
                 <a asp-controller="Admin" asp-action="Index">Admin</a>
             }
-                @if (!(User?.Identity?.IsAuthenticated == true))
-                {
-                    <a asp-controller="Account" asp-action="Auth">Sign In</a>
-                }
+            @if (User?.Identity?.IsAuthenticated == true)
+            {
+                <details class="account-menu">
+                    <summary class="account-menu-trigger">Account</summary>
+                    <div class="account-menu-panel">
+                        @if (!string.IsNullOrWhiteSpace(currentUser))
+                        {
+                            <span class="account-menu-user">@currentUser</span>
+                        }
+                        <a asp-controller="Account" asp-action="Logout" class="account-menu-link">Sign Out</a>
+                    </div>
+                </details>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Auth">Sign In</a>
+            }
         </nav>
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
     </header>

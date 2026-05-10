@@ -85,6 +85,23 @@ public class Project
     public string Lead { get; set; } = string.Empty;
     public string Stack { get; set; } = string.Empty;
     public List<Comment> Comments { get; set; } = [];
+    public List<string> ImageUrls { get; set; } = [];
+}
+
+public class ProjectSubmission
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Summary { get; set; } = string.Empty;
+    public string Lead { get; set; } = string.Empty;
+    public string Stack { get; set; } = string.Empty;
+    public string SubmittedBy { get; set; } = string.Empty;
+    public DateTime SubmittedAtUtc { get; set; }
+    public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected
+    public string DecisionBy { get; set; } = string.Empty;
+    public DateTime? DecisionAtUtc { get; set; }
+    public string DecisionNote { get; set; } = string.Empty;
+    public List<string> ImageUrls { get; set; } = [];
 }
 
 public class Comment
@@ -186,6 +203,7 @@ public class AdminDashboardViewModel
     public List<AdminContactItem> RecentContacts { get; set; } = [];
     public List<AdminRegistrationItem> RecentRegistrations { get; set; } = [];
     public string LiveUpdatedAtUtc { get; set; } = string.Empty;
+    public List<ProjectSubmission> PendingProjectSubmissions { get; set; } = [];
 }
 
 public class DashboardStat
