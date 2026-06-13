@@ -810,22 +810,22 @@ public static class ClubRepository
         EnsureInitialized();
 
         using var connection = OpenConnection();
-        var imageOverrides = GetProfileImageOverrides(connection);
         var profileOverrides = GetProfileOverrides(connection);
+        var imageOverrides = GetProfileImageOverrides(connection);
 
         foreach (var profile in profiles)
         {
             var profileKey = string.IsNullOrWhiteSpace(profile.ProfileKey) ? BuildProfileKey(roleKey, profile.Email) : profile.ProfileKey;
-            if (imageOverrides.TryGetValue(profileKey, out var imageUrl))
-            {
-                profile.ImageUrl = imageUrl;
-            }
-
             if (profileOverrides.TryGetValue(profileKey, out var overrideEntry))
             {
                 if (!string.IsNullOrWhiteSpace(overrideEntry.Name)) profile.Name = overrideEntry.Name;
                 if (!string.IsNullOrWhiteSpace(overrideEntry.Email)) profile.Email = overrideEntry.Email;
                 if (!string.IsNullOrWhiteSpace(overrideEntry.ImageUrl)) profile.ImageUrl = overrideEntry.ImageUrl;
+            }
+
+            if (imageOverrides.TryGetValue(profileKey, out var imageUrl))
+            {
+                profile.ImageUrl = imageUrl;
             }
         }
 

@@ -1062,6 +1062,35 @@ input:focus, select:focus, textarea:focus {
     flex-wrap: wrap;
 }
 
+.recipient-choice {
+    display: grid;
+    gap: 10px;
+    margin: 12px 0 16px;
+}
+
+.recipient-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(36, 43, 58, 0.65);
+    cursor: pointer;
+}
+
+.recipient-option input[type="radio"] {
+    width: auto;
+    margin: 0;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+}
+
+.recipient-option:hover {
+    border-color: rgba(212, 165, 116, 0.4);
+    background: rgba(36, 43, 58, 0.9);
+}
+
 .chip {
     display: inline-block;
     border-radius: 20px;
@@ -1139,6 +1168,17 @@ input:focus, select:focus, textarea:focus {
 }
 .admin-list { display:flex; flex-direction:column; gap:12px; }
 .admin-item { padding:12px; border-radius:10px; background: rgba(45,53,68,0.6); border:1px solid var(--border); }
+
+.admin-event-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.admin-event-actions .inline-form {
+    margin: 0;
+}
 
 
 /* ========== RESPONSIVE ========== */

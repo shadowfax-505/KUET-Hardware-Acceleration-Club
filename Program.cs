@@ -112,7 +112,15 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+var httpsPortConfigured =
+    !string.IsNullOrWhiteSpace(builder.Configuration["HTTPS_PORT"]) ||
+    !string.IsNullOrWhiteSpace(builder.Configuration["ASPNETCORE_HTTPS_PORT"]);
+
+if (app.Environment.IsDevelopment() || httpsPortConfigured)
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 
 app.UseRouting();

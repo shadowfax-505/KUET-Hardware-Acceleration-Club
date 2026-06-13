@@ -75,9 +75,10 @@
             var memberBarWidth = Math.max(18, Math.round((memberTotal / maxCount) * usableWidth));
             var adminBarWidth = Math.max(18, Math.round((adminTotal / maxCount) * usableWidth));
 
-            chartContext.font = "600 14px Segoe UI, sans-serif";
-            chartContext.fillStyle = "#18212c";
+            chartContext.font = "700 14px Segoe UI, sans-serif";
+            chartContext.fillStyle = "#e8bb88";
             chartContext.fillText("Members", 16, topPadding + 26);
+            chartContext.fillStyle = "#6fe1d2";
             chartContext.fillText("Admins", 16, topPadding + barGap + barHeight + 26);
 
             chartContext.fillStyle = "rgba(168, 117, 56, 0.22)";
@@ -89,7 +90,7 @@
             chartContext.fillStyle = "#5bc0b5";
             chartContext.fillRect(leftPadding, topPadding + barGap + barHeight, adminBarWidth, barHeight);
 
-            chartContext.fillStyle = "#18212c";
+            chartContext.fillStyle = "#f4f7fb";
             chartContext.fillText(String(memberTotal), leftPadding + memberBarWidth + 10, topPadding + 26);
             chartContext.fillText(String(adminTotal), leftPadding + adminBarWidth + 10, topPadding + barGap + barHeight + 26);
         };
