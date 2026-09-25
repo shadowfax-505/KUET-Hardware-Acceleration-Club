@@ -52,8 +52,10 @@ using (var scope = app.Services.CreateScope())
     }
 
     var adminEmail = "admin@hack.kuet.ac.bd";
+    var adminPassword = app.Configuration["Seed:AdminPassword"]
+        ?? (app.Environment.IsDevelopment() ? "Admin@123" : null);
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
-    if (adminUser is null)
+    if (adminUser is null && adminPassword is not null)
     {
         adminUser = new IdentityUser
         {
@@ -62,23 +64,25 @@ using (var scope = app.Services.CreateScope())
             EmailConfirmed = true
         };
 
-        var adminCreate = await userManager.CreateAsync(adminUser, "Admin@123");
+        var adminCreate = await userManager.CreateAsync(adminUser, adminPassword);
         if (adminCreate.Succeeded)
         {
             await userManager.AddToRoleAsync(adminUser, "Admin");
         }
     }
-    else if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+    else if (adminUser is not null && !await userManager.IsInRoleAsync(adminUser, "Admin"))
     {
         await userManager.AddToRoleAsync(adminUser, "Admin");
     }
 
-    var demoMembers = new[]
-    {
-        (Email: "member1@kuet.ac.bd", Password: "member123"),
-        (Email: "member2@kuet.ac.bd", Password: "member123"),
-        (Email: "member3@kuet.ac.bd", Password: "member123")
-    };
+    var demoMembers = app.Environment.IsDevelopment()
+        ? new[]
+        {
+            (Email: "member1@kuet.ac.bd", Password: "member123"),
+            (Email: "member2@kuet.ac.bd", Password: "member123"),
+            (Email: "member3@kuet.ac.bd", Password: "member123")
+        }
+        : Array.Empty<(string Email, string Password)>();
 
     foreach (var demoMember in demoMembers)
     {
